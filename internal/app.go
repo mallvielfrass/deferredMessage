@@ -2,6 +2,7 @@ package internal
 
 import (
 	"deferredMessage/config"
+	"deferredMessage/internal/api/noauth"
 	"deferredMessage/internal/db"
 	"net/http"
 
@@ -29,13 +30,19 @@ func (app DefferedMessageApp) Run() error {
 		return err
 	}
 	defer db.Disconnect()
-	r := gin.Default()
+	router := gin.Default()
+
+	r := router.Group("/api")
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
 		})
 	})
+
+	noAuthR := r.Group("/nauth")
+	noAuthRouter := noauth.Init(db)
+	noAuthRouter.Router(noAuthR)
 	//	fmt.Printf("config: %#v\n", app.Config)
-	err = r.Run(app.Config.HostPort)
+	err = router.Run(app.Config.HostPort)
 	return err
 }
