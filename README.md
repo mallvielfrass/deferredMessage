@@ -7,3 +7,5 @@ service of deferred messages
 - web frontend
 - backend
 - telegram bot
+  todo:
+- api регистрация и авторизация
