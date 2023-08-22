@@ -43,7 +43,8 @@ func InitConfig(confPath string) (Config, error) {
 	}
 	defaultConf := Config{
 		HostPort: ":9090",
-		DBHost:   "mongodb://127.0.0.1:27017/DefaultDB",
+		DBHost:   "mongodb://127.0.0.1:27017/ ",
+		DBName:   "DefaultDB",
 	}
 	HOST_PORT, exist := os.LookupEnv("HOST_PORT")
 	if !exist {
@@ -56,6 +57,12 @@ func InitConfig(confPath string) (Config, error) {
 		fmt.Printf("warn: %s\n", fmt.Errorf("env '%s' not found", "MONGODB_HOST"))
 	} else {
 		defaultConf.DBHost = MONGODB_HOST
+	}
+	MONGODB_NAME, exist := os.LookupEnv("MONGODB_NAME")
+	if !exist {
+		fmt.Printf("warn: %s\n", fmt.Errorf("env '%s' not found", "MONGODB_NAME"))
+	} else {
+		defaultConf.DBName = MONGODB_NAME
 	}
 
 	return defaultConf, nil

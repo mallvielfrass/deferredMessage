@@ -2,6 +2,7 @@ package internal
 
 import (
 	"deferredMessage/config"
+	"deferredMessage/internal/db"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,7 +24,11 @@ func NewApp(confPath string) (DefferedMessageApp, error) {
 	}, nil
 }
 func (app DefferedMessageApp) Run() error {
-
+	db, err := db.ConnectDB(app.Config.DBHost, app.Config.DBName)
+	if err != nil {
+		return err
+	}
+	defer db.Disconnect()
 	r := gin.Default()
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -31,6 +36,6 @@ func (app DefferedMessageApp) Run() error {
 		})
 	})
 	//	fmt.Printf("config: %#v\n", app.Config)
-	err := r.Run(app.Config.HostPort)
+	err = r.Run(app.Config.HostPort)
 	return err
 }
