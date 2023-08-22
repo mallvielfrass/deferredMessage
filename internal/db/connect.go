@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"deferredMessage/internal/db/mongo/chat"
+	"deferredMessage/internal/db/mongo/user"
 	"fmt"
 	"log"
 
@@ -12,8 +13,13 @@ import (
 
 type Chat interface {
 }
+type User interface {
+	CheckUser(mail string) (bool, error)
+	CreateUser(name, mail, hash string) (user.UserScheme, error)
+}
 type Collection struct {
 	Chat Chat
+	User User
 }
 type DB struct {
 	driver      *mongo.Database
@@ -49,6 +55,7 @@ func ConnectDB(url, dbname string) (DB, error) {
 func (db *DB) mountSchemes() {
 	db.Collections = &Collection{
 		Chat: chat.Init(db.driver),
+		User: user.Init(db.driver),
 	}
 }
 
