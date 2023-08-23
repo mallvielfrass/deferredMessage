@@ -2,6 +2,7 @@ package internal
 
 import (
 	"deferredMessage/config"
+	"deferredMessage/internal/api/auth/user"
 	"deferredMessage/internal/api/noauth"
 	"deferredMessage/internal/db"
 	"net/http"
@@ -39,9 +40,9 @@ func (app DefferedMessageApp) Run() error {
 		})
 	})
 
-	noAuthR := r.Group("/nauth")
-	noAuthRouter := noauth.Init(db)
-	noAuthRouter.Router(noAuthR)
+	noauth.Init(db).Router(r.Group("/nauth"))
+	user.Init(db).Router(r.Group("/auth/user/"))
+
 	//	fmt.Printf("config: %#v\n", app.Config)
 	err = router.Run(app.Config.HostPort)
 	return err
