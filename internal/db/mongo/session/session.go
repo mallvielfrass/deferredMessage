@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/mallvielfrass/fmc"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,10 +14,12 @@ import (
 )
 
 type SessionScheme struct {
-	ID     string `bson:"_id"`
-	UserID string `bson:"user_id"`
-	Expire int64  `bson:"expire"`
-	IP     string `bson:"ip"`
+	ID        string `bson:"_id"`
+	UserID    string `bson:"user_id"`
+	Expire    int64  `bson:"expire"`
+	IP        string `bson:"ip"`
+	Valid     bool   `bson:"valid"`
+	AtCreated int64  `bson:"at_created"`
 }
 type Session struct {
 	ct *mongo.Collection
@@ -49,8 +52,8 @@ func Init(driver *mongo.Database) Session {
 func (Session Session) GetSessionByID(id primitive.ObjectID) (SessionScheme, bool, error) {
 	var findedSession SessionScheme
 	err := Session.ct.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&findedSession)
-	fmt.Printf("findedSession: %#v\n", findedSession)
-	fmt.Printf("err: %#v\n", err)
+	//fmt.Printf("findedSession: %#v\n", findedSession)
+	//fmt.Printf("err: %#v\n", err)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return SessionScheme{}, false, nil
@@ -63,7 +66,7 @@ func (Session Session) GetSessionByID(id primitive.ObjectID) (SessionScheme, boo
 // create Session (name, hash)
 func (Session Session) CreateSession(UserID string, expire int64, ip string) (SessionScheme, error) {
 
-	res, err := Session.ct.InsertOne(context.TODO(), bson.M{"user_id": UserID, "expire": expire, "ip": ip})
+	res, err := Session.ct.InsertOne(context.TODO(), bson.M{"user_id": UserID, "expire": expire, "ip": ip, "valid": true, "at_created": time.Now().Unix()})
 	if err != nil {
 		return SessionScheme{}, err
 	}
