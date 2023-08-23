@@ -10,6 +10,12 @@ type RegisterBody struct {
 	Mail     string `json:"mail" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
+type LoginBody struct {
+	// json tag to de-serialize json body
+
+	Mail     string `json:"mail" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
 
 func getStruct[T any](c *gin.Context, body T) (T, bool) {
 	if err := c.ShouldBindJSON(&body); err != nil {

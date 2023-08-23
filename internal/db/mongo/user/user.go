@@ -59,18 +59,33 @@ func (user User) CheckUser(mail string) (bool, error) {
 }
 
 // find by ID
-func (user User) GetUser(id primitive.ObjectID) (UserScheme, error) {
+func (user User) GetUserByID(id primitive.ObjectID) (UserScheme, bool, error) {
 	var findedUser UserScheme
 	err := user.ct.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&findedUser)
 	fmt.Printf("findedUser: %#v\n", findedUser)
 	fmt.Printf("err: %#v\n", err)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return UserScheme{}, nil
+			return UserScheme{}, false, nil
 		}
-		return UserScheme{}, err
+		return UserScheme{}, false, err
 	}
-	return findedUser, nil
+	return findedUser, true, nil
+}
+
+// find by ID
+func (user User) GetUserByMail(mail string) (UserScheme, bool, error) {
+	var findedUser UserScheme
+	err := user.ct.FindOne(context.TODO(), bson.M{"mail": mail}).Decode(&findedUser)
+	//fmt.Printf("findedUser: %#v\n", findedUser)
+	fmt.Printf("err: %#v\n", err)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return UserScheme{}, false, nil
+		}
+		return UserScheme{}, false, err
+	}
+	return findedUser, true, nil
 }
 
 // create User (name, hash)
@@ -80,9 +95,12 @@ func (user User) CreateUser(name, mail, hash string) (UserScheme, error) {
 	if err != nil {
 		return UserScheme{}, err
 	}
-	u, err := user.GetUser(res.InsertedID.(primitive.ObjectID))
+	u, isExist, err := user.GetUserByID(res.InsertedID.(primitive.ObjectID))
 	if err != nil {
 		return UserScheme{}, err
+	}
+	if !isExist {
+		return UserScheme{}, fmt.Errorf("User not created")
 	}
 	fmt.Println(res)
 	fmt.Println(u)
