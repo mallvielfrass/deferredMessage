@@ -2,13 +2,12 @@ package internal
 
 import (
 	"deferredMessage/config"
+	_ "deferredMessage/docs"
 	"deferredMessage/internal/api/auth/user"
 	"deferredMessage/internal/api/noauth"
 	"deferredMessage/internal/db"
 
 	"net/http"
-
-	_ "deferredMessage/docs"
 
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
@@ -41,7 +40,7 @@ func NewApp(confPath string) (DefferedMessageApp, error) {
 // @Accept json
 // @Produce json
 // @Success 200 {string} Helloworld
-// @Router /example/helloworld [get]
+// @Router /tapi/example/helloworld [get]
 func Helloworld(g *gin.Context) {
 	g.JSON(http.StatusOK, "helloworld")
 }
@@ -59,7 +58,7 @@ func (app DefferedMessageApp) Run() error {
 			"message": "pong",
 		})
 	})
-	//	docs.SwaggerInfo.BasePath = "/tapi/"
+	//docs.SwaggerInfo.BasePath = "/api/"
 	v1 := router.Group("/tapi")
 	{
 		eg := v1.Group("/example")

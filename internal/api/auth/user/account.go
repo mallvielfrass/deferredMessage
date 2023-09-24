@@ -21,10 +21,11 @@ func Init(db db.DB) userApi {
 }
 
 // check auth middleware
+
 func (n userApi) CheckAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		//get token from header
-		token := c.GetHeader("token")
+		token := c.GetHeader("Authorization")
 		if token == "" {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no token"})
 			return
@@ -60,14 +61,23 @@ func (n userApi) CheckAuth() gin.HandlerFunc {
 	}
 }
 
+// @Summary Ping
+// @Description Returns a "pong" message
+// @Accept json
+// @Tags user
+// @Security Bearer
+// @Produce json
+// @Success 200 {object}  MessageResponse
+// @Router /api/auth/user/ping [get]
+func ping(c *gin.Context) {
+	c.JSON(http.StatusOK, MessageResponse{
+		Message: "pong",
+	})
+}
 func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 	r := router.Group("/")
 	r.Use(n.CheckAuth())
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
+	r.GET("/ping", ping)
 
 	return r
 }
