@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <style>
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-form {
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 5px;
+      background-color: #fff;
+    }
+
+    .form-row {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .form-row label {
+      margin-right: 10px;
+      width: 80px;
+    }
+
+    button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .button-login {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: medium;
+    }
+    .change-mode-container {
+      display: flex;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    .button-login-container {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .flex-grow {
+      flex-grow: 1;
+    }
+    .link-button {
+      background: none;
+      border: none;
+      padding: 0;
+      font: inherit;
+      color: #007bff;
+
+      text-decoration: underline;
+      cursor: pointer;
+      margin-left: 5px; /* optional: add some space between the elements */
+    }
+  </style>
+  <body>
+    <div id="app">
+      <div v-if="isLogin">{{ msg }}</div>
+      <div v-else>
+        <div class="login-container">
+          <form @submit.prevent="checkFormAndAuth" class="login-form">
+            <div v-if="errors.length">
+              <b>Please correct the following error(s):</b>
+              <ul>
+                <li v-for="error in errors">{{ error }}</li>
+              </ul>
+            </div>
+            <div v-if="mode === 'register'">
+              <div class="form-row">
+                <label for="username">Username</label>
+                <input type="text" id="username" v-model="username" required />
+              </div>
+            </div>
+            <div class="form-row">
+              <label for="mail">Mail</label>
+              <input type="text" id="mail" v-model="mail" required />
+            </div>
+            <div class="form-row">
+              <label for="password">Password</label>
+              <input
+                type="password"
+                id="password"
+                v-model="password"
+                required
+              />
+            </div>
+            <div v-if="mode === 'register'">
+              <div class="form-row">
+                <label for="password">Repeat Password</label>
+                <input
+                  type="password"
+                  id="password"
+                  v-model="passwordRepeat"
+                  required
+                />
+              </div>
+            </div>
+            <div class="button-login-container">
+              <div class="flex-grow"></div>
+              <button type="submit" class="button-login">
+                <div v-if="mode === 'login'">Login</div>
+                <div v-else>Register</div>
+              </button>
+            </div>
+
+            <div v-if="mode === 'login'" class="change-mode-container">
+              Don't have an account?
+              <div class="link-button" @click="toggleMode">Register</div>
+            </div>
+            <div v-else class="change-mode-container">
+              Already have an account?
+              <div class="link-button" @click="toggleMode">Login</div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+
+  <script src="/static/index.js"></script>
+</html>

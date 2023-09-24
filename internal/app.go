@@ -67,6 +67,12 @@ func (app DefferedMessageApp) Run() error {
 		}
 	}
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+	//html file serve
+	router.GET("/front", func(c *gin.Context) {
+		c.File("./internal/static/index.html")
+	})
+	///static files
+	router.Static("/static", "./internal/static")
 	noauth.Init(db).Router(r.Group("/nauth"))
 	user.Init(db).Router(r.Group("/auth/user/"))
 
