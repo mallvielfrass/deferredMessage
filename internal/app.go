@@ -5,8 +5,10 @@ import (
 	"deferredMessage/internal/api/auth/user"
 	"deferredMessage/internal/api/noauth"
 	"deferredMessage/internal/db"
-	"deferredMessage/internal/docs"
+
 	"net/http"
+
+	_ "deferredMessage/docs"
 
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
@@ -57,7 +59,7 @@ func (app DefferedMessageApp) Run() error {
 			"message": "pong",
 		})
 	})
-	docs.SwaggerInfo.BasePath = "/tapi/"
+	//	docs.SwaggerInfo.BasePath = "/tapi/"
 	v1 := router.Group("/tapi")
 	{
 		eg := v1.Group("/example")
