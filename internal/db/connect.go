@@ -16,7 +16,7 @@ import (
 type Chat interface {
 }
 type User interface {
-	CheckUser(mail string) (bool, error)
+	CheckUserByMail(mailOrUsername string) (bool, error)
 	CreateUser(name, mail, hash string) (user.UserScheme, error)
 	GetUserByID(id primitive.ObjectID) (user.UserScheme, bool, error)
 	GetUserByMail(mail string) (user.UserScheme, bool, error)

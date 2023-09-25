@@ -44,7 +44,7 @@ func Init(driver *mongo.Database) User {
 		ct: driver.Collection(collectionName),
 	}
 }
-func (user User) CheckUser(mail string) (bool, error) {
+func (user User) CheckUserByMail(mail string) (bool, error) {
 	var findedUser UserScheme
 	err := user.ct.FindOne(context.TODO(), bson.M{"mail": mail}).Decode(&findedUser)
 	fmt.Printf("findedUser: %#v\n", findedUser)

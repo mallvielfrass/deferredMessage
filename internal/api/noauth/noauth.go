@@ -28,7 +28,7 @@ func (n NoAuth) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no body"})
 			return
 		}
-		isExist, err := n.db.Collections.User.CheckUser(body.Mail)
+		isExist, err := n.db.Collections.User.CheckUserByMail(body.Mail)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -48,7 +48,7 @@ func (n NoAuth) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			return
 		}
 
-		isExist, err := n.db.Collections.User.CheckUser(body.Mail)
+		isExist, err := n.db.Collections.User.CheckUserByMail(body.Mail)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -67,8 +67,14 @@ func (n NoAuth) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
+		userIP := c.ClientIP()
+		session, err := n.db.Collections.Session.CreateSession(user.ID, time.Now().Add(time.Hour*24*31).Unix(), userIP)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
-		c.JSON(http.StatusOK, gin.H{"status": "success", "user": gin.H{"name": user.Name, "mail": user.Mail}})
+		c.JSON(http.StatusOK, gin.H{"status": "success", "user": gin.H{"name": user.Name, "mail": user.Mail}, "session": gin.H{"id": session.ID, "expire": session.Expire}})
 	})
 	r.POST("/login", func(c *gin.Context) {
 		body, exist := getStruct[LoginBody](c, LoginBody{})
