@@ -105,6 +105,11 @@ var app = new Vue({
           console.log("unknown catch error", error);
         });
     },
+    logout: async function () {
+      console.log("logout");
+      localStorage.removeItem("token");
+      this.isLogin = false;
+    },
     login: async function () {
       console.log("login");
       this.errors = [];
