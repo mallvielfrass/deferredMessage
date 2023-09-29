@@ -3,6 +3,7 @@ package noauth
 import (
 	"deferredMessage/internal/db"
 	"deferredMessage/internal/utils"
+	"deferredMessage/internal/utils/dto"
 	"fmt"
 	"net/http"
 	"time"
@@ -14,6 +15,19 @@ type NoAuth struct {
 	db db.DB
 }
 
+type RegisterBody struct {
+	// json tag to de-serialize json body
+	Name     string `json:"name" binding:"required"`
+	Mail     string `json:"mail" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+type LoginBody struct {
+	// json tag to de-serialize json body
+
+	Mail     string `json:"mail" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
 func Init(db db.DB) NoAuth {
 	return NoAuth{
 		db: db,
@@ -23,7 +37,7 @@ func (n NoAuth) Router(router *gin.RouterGroup) *gin.RouterGroup {
 	r := router.Group("/")
 	r.POST("/check", func(c *gin.Context) {
 		//fmt.Println("register")
-		body, exist := getStruct[RegisterBody](c, RegisterBody{})
+		body, exist := dto.GetStruct[RegisterBody](c, RegisterBody{})
 		if !exist {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no body"})
 			return
@@ -42,7 +56,7 @@ func (n NoAuth) Router(router *gin.RouterGroup) *gin.RouterGroup {
 
 	r.POST("/register", func(c *gin.Context) {
 		//fmt.Println("register")
-		body, exist := getStruct[RegisterBody](c, RegisterBody{})
+		body, exist := dto.GetStruct[RegisterBody](c, RegisterBody{})
 		if !exist {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no body"})
 			return
@@ -77,7 +91,7 @@ func (n NoAuth) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		c.JSON(http.StatusOK, gin.H{"status": "success", "user": gin.H{"name": user.Name, "mail": user.Mail}, "session": gin.H{"id": session.ID, "expire": session.Expire}})
 	})
 	r.POST("/login", func(c *gin.Context) {
-		body, exist := getStruct[LoginBody](c, LoginBody{})
+		body, exist := dto.GetStruct[LoginBody](c, LoginBody{})
 		if !exist {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no body"})
 			return

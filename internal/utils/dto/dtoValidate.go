@@ -1,23 +1,10 @@
-package noauth
+package dto
 
 import (
 	"github.com/gin-gonic/gin"
 )
 
-type RegisterBody struct {
-	// json tag to de-serialize json body
-	Name     string `json:"name" binding:"required"`
-	Mail     string `json:"mail" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-type LoginBody struct {
-	// json tag to de-serialize json body
-
-	Mail     string `json:"mail" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
-func getStruct[T any](c *gin.Context, body T) (T, bool) {
+func GetStruct[T any](c *gin.Context, body T) (T, bool) {
 	if err := c.ShouldBindJSON(&body); err != nil {
 		//c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return body, false
