@@ -8,4 +8,7 @@ service of deferred messages
 - backend
 - telegram bot
   todo:
-- api регистрация и авторизация
+- [done] api регистрация и авторизация
+- типы соцсетей
+- добавление группы
+- создвние сообщения

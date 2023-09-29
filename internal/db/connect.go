@@ -15,6 +15,8 @@ import (
 
 type Chat interface {
 }
+type Group interface {
+}
 type User interface {
 	CheckUserByMail(mailOrUsername string) (bool, error)
 	CreateUser(name, mail, hash string) (user.UserScheme, error)
@@ -29,6 +31,7 @@ type Collection struct {
 	Chat    Chat
 	User    User
 	Session Session
+	Group   Group
 }
 type DB struct {
 	driver      *mongo.Database

@@ -2,6 +2,7 @@ package user
 
 import (
 	"deferredMessage/internal/db"
+	"deferredMessage/internal/db/mongo/session"
 	"fmt"
 	"net/http"
 	"time"
@@ -74,10 +75,32 @@ func ping(c *gin.Context) {
 		Message: "pong",
 	})
 }
+
+type Network struct {
+	Name       string `json:"name"`
+	Identifier string `json:"identifier"`
+}
+
 func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 	r := router.Group("/")
 	r.Use(n.CheckAuth())
-	r.GET("/ping", ping)
 
+	r.GET("/ping", ping)
+	r.GET("/networks", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{"networks": []Network{
+			{Name: "Telegram official bot", Identifier: "telegram_official_bot"},
+		}})
+	})
+	userGroups := r.Group("/group")
+	userGroups.GET("/", func(c *gin.Context) {
+		userSession, ok := c.Get("session")
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no session"})
+			return
+		}
+		session := userSession.(session.SessionScheme)
+		fmt.Println(session)
+		c.JSON(http.StatusOK, gin.H{"message": "pong"})
+	})
 	return r
 }
