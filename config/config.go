@@ -64,6 +64,11 @@ func InitConfig(confPath string) (Config, error) {
 	} else {
 		defaultConf.DBName = MONGODB_NAME
 	}
-
+	TELEGRAM_BOT_TOKEN, exist := os.LookupEnv("TELEGRAM_BOT_TOKEN")
+	if !exist {
+		fmt.Printf("warn: %s\n", fmt.Errorf("env '%s' not found", "TELEGRAM_BOT_TOKEN"))
+	} else {
+		defaultConf.TelegramBotToken = TELEGRAM_BOT_TOKEN
+	}
 	return defaultConf, nil
 }

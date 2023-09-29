@@ -5,6 +5,7 @@ import (
 	_ "deferredMessage/docs"
 	"deferredMessage/internal/api/auth/user"
 	"deferredMessage/internal/api/noauth"
+	"deferredMessage/internal/bot"
 	"deferredMessage/internal/db"
 
 	"net/http"
@@ -50,6 +51,13 @@ func (app DefferedMessageApp) Run() error {
 		return err
 	}
 	defer db.Disconnect()
+	tgBot, err := bot.InitBot(app.Config.TelegramBotToken)
+	if err != nil {
+		return err
+	}
+	defer tgBot.Stop()
+	tgBot.Mount()
+	go tgBot.Start()
 	router := gin.Default()
 
 	r := router.Group("/api")
@@ -77,6 +85,7 @@ func (app DefferedMessageApp) Run() error {
 	user.Init(db).Router(r.Group("/auth/user/"))
 
 	//	fmt.Printf("config: %#v\n", app.Config)
+
 	err = router.Run(app.Config.HostPort)
 	return err
 }
