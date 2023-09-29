@@ -91,8 +91,8 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			{Name: "Telegram official bot", Identifier: "telegram_official_bot"},
 		}})
 	})
-	userGroups := r.Group("/group")
-	userGroups.GET("/", func(c *gin.Context) {
+	userChats := r.Group("/chats")
+	userChats.GET("/", func(c *gin.Context) {
 		userSession, ok := c.Get("session")
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no session"})
