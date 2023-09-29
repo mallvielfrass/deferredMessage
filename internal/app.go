@@ -45,19 +45,7 @@ func NewApp(confPath string) (DefferedMessageApp, error) {
 func Helloworld(g *gin.Context) {
 	g.JSON(http.StatusOK, "helloworld")
 }
-func (app DefferedMessageApp) Run() error {
-	db, err := db.ConnectDB(app.Config.DBHost, app.Config.DBName)
-	if err != nil {
-		return err
-	}
-	defer db.Disconnect()
-	tgBot, err := bot.InitBot(app.Config.TelegramBotToken)
-	if err != nil {
-		return err
-	}
-	defer tgBot.Stop()
-	tgBot.Mount()
-	go tgBot.Start()
+func InitRouter(db db.DB) *gin.Engine {
 	router := gin.Default()
 
 	r := router.Group("/api")
@@ -83,9 +71,24 @@ func (app DefferedMessageApp) Run() error {
 	router.Static("/static", "./internal/static")
 	noauth.Init(db).Router(r.Group("/nauth"))
 	user.Init(db).Router(r.Group("/auth/user/"))
+	return router
+}
+func (app DefferedMessageApp) Run() error {
+	db, err := db.ConnectDB(app.Config.DBHost, app.Config.DBName)
+	if err != nil {
+		return err
+	}
+	defer db.Disconnect()
+	tgBot, err := bot.InitBot(app.Config.TelegramBotToken, db)
+	if err != nil {
+		return err
+	}
+	defer tgBot.Stop()
+	tgBot.Mount()
+	go tgBot.Start()
 
 	//	fmt.Printf("config: %#v\n", app.Config)
-
+	router := InitRouter(db)
 	err = router.Run(app.Config.HostPort)
 	return err
 }
