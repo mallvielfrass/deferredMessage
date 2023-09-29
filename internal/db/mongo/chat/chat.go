@@ -7,9 +7,18 @@ import (
 
 	"github.com/mallvielfrass/fmc"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/exp/slices"
 )
+
+type ChatScheme struct {
+	Name              string `bson:"name"`
+	ID                string `bson:"_id"`
+	LinkOrIdInNetwork string `bson:"linkOrIdInNetwork"`
+	Network           string `bson:"network"`
+	Verified          bool   `bson:"verified"`
+}
 
 type Chat struct {
 	ct *mongo.Collection
@@ -36,4 +45,19 @@ func Init(driver *mongo.Database) Chat {
 	return Chat{
 		ct: driver.Collection(collectionName),
 	}
+}
+func (c Chat) GetChatByID(id primitive.ObjectID) (ChatScheme, bool, error) {
+	var findedChat ChatScheme
+	err := c.ct.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&findedChat)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return ChatScheme{}, false, nil
+		}
+		return ChatScheme{}, false, err
+	}
+	return findedChat, true, nil
+}
+func (c Chat) UpdateChat(chat ChatScheme) error {
+	_, err := c.ct.UpdateOne(context.TODO(), bson.M{"_id": chat.ID}, bson.M{"$set": chat})
+	return err
 }

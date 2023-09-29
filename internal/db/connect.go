@@ -14,9 +14,10 @@ import (
 )
 
 type Chat interface {
+	GetChatByID(id primitive.ObjectID) (chat.ChatScheme, bool, error)
+	UpdateChat(chat.ChatScheme) error
 }
-type Group interface {
-}
+
 type User interface {
 	CheckUserByMail(mailOrUsername string) (bool, error)
 	CreateUser(name, mail, hash string) (user.UserScheme, error)
@@ -31,7 +32,6 @@ type Collection struct {
 	Chat    Chat
 	User    User
 	Session Session
-	Group   Group
 }
 type DB struct {
 	driver      *mongo.Database
