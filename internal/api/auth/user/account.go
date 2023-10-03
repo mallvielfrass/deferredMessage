@@ -5,6 +5,7 @@ import (
 	"deferredMessage/internal/db/mongo/session"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -100,7 +101,57 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		}
 		session := userSession.(session.SessionScheme)
 		fmt.Println(session)
-		c.JSON(http.StatusOK, gin.H{"message": "pong"})
+		userID, err := primitive.ObjectIDFromHex(session.UserID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
+			return
+		}
+		user, exist, err := n.db.Collections.User.GetUserByID(userID)
+
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if !exist {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "user not found"})
+		}
+		//get from url query params [count, offset]
+		countString := c.DefaultQuery("count", "10")
+		offsetString := c.DefaultQuery("offset", "0")
+		count, err := strconv.Atoi(countString)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		offset, err := strconv.Atoi(offsetString)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		diff := len(user.Chats) - offset
+		if count > diff {
+			count = diff
+		}
+		if count < 0 {
+			c.JSON(http.StatusOK, gin.H{"chats": gin.H{}})
+			return
+		}
+		userChatsId := user.Chats
+		chatsId := userChatsId[offset : offset+count]
+		if len(chatsId) == 0 {
+			c.JSON(http.StatusOK, gin.H{"chats": gin.H{}})
+			return
+		}
+		chats, err := n.db.Collections.Chat.GetChatsByArrayID(chatsId)
+
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"chats": chats, "offset": offset, "count": count})
+	})
+	userChats.POST("/", func(c *gin.Context) {
+
 	})
 	return r
 }
