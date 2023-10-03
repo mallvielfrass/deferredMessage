@@ -61,3 +61,40 @@ func (c Chat) UpdateChat(chat ChatScheme) error {
 	_, err := c.ct.UpdateOne(context.TODO(), bson.M{"_id": chat.ID}, bson.M{"$set": chat})
 	return err
 }
+
+func (c Chat) CreateChat(name string, network string) (ChatScheme, error) {
+	id := primitive.NewObjectID()
+	chat := ChatScheme{
+		ID:                id.Hex(),
+		Name:              name,
+		Network:           network,
+		LinkOrIdInNetwork: "",
+		Verified:          false,
+	}
+	_, err := c.ct.InsertOne(context.TODO(), chat)
+	if err != nil {
+		return ChatScheme{}, err
+	}
+	return chat, nil
+}
+func (c Chat) GetChatsByArrayID(chats []primitive.ObjectID) ([]ChatScheme, error) {
+	var findedChats []ChatScheme
+	cur, err := c.ct.Find(context.TODO(), bson.M{"_id": bson.M{"$in": chats}})
+	if err != nil {
+		return nil, err
+	}
+
+	defer cur.Close(context.TODO())
+	for cur.Next(context.TODO()) {
+		var chat ChatScheme
+		err := cur.Decode(&chat)
+		if err != nil {
+			return nil, err
+		}
+		findedChats = append(findedChats, chat)
+	}
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+	return findedChats, nil
+}

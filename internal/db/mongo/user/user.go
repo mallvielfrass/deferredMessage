@@ -17,6 +17,8 @@ type UserScheme struct {
 	Mail string `bson:"mail"`
 	Hash string `bson:"hash"`
 	ID   string `bson:"_id"`
+	//Chats array with id of chats refferenced to ChatScheme
+	Chats []primitive.ObjectID `bson:"chats"`
 }
 type User struct {
 	ct *mongo.Collection
@@ -105,4 +107,14 @@ func (user User) CreateUser(name, mail, hash string) (UserScheme, error) {
 	fmt.Println(res)
 	fmt.Println(u)
 	return u, nil
+}
+
+// add chat to user
+func (user User) AddChatToUser(chatID primitive.ObjectID, userID primitive.ObjectID) error {
+	res, err := user.ct.UpdateOne(context.TODO(), bson.M{"_id": userID}, bson.M{"$push": bson.M{"chats": chatID}})
+	if err != nil {
+		return err
+	}
+	fmt.Println(res)
+	return nil
 }

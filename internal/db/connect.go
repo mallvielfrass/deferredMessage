@@ -16,6 +16,8 @@ import (
 type Chat interface {
 	GetChatByID(id primitive.ObjectID) (chat.ChatScheme, bool, error)
 	UpdateChat(chat.ChatScheme) error
+	CreateChat(name string, network string) (chat.ChatScheme, error)
+	GetChatsByArrayID(chats []primitive.ObjectID) ([]chat.ChatScheme, error)
 }
 
 type User interface {
