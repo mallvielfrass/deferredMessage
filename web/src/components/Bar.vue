@@ -49,18 +49,14 @@
 import LoginForm from "@/components/LoginForm.vue";
 import RegisterForm from "@/components/RegisterForm.vue";
 import NotifyAlert from "@/components/NotifyAlert.vue";
+import { registerUser, loginUser } from "@/api/auth.js";
+
 export default {
   data() {
     return {
       dialog: true,
-
       errors: [],
       mode: "login",
-      username: "",
-      mail: "",
-      password: "",
-      passwordRepeat: "",
-      parentData: "initial value",
     };
   },
   components: {
@@ -77,7 +73,7 @@ export default {
     AuthFrame() {
       this.dialog = true;
     },
-    sendFormRegister() {
+    async sendFormRegister() {
       const checkForm = this.$refs.registerFormRef.getValidateState();
       console.log("sendForm:", checkForm);
       if (!checkForm) {
@@ -88,8 +84,18 @@ export default {
       const { username, email, password } =
         this.$refs.registerFormRef.getData();
       console.log(username, email, password);
+      const response = await registerUser(username, email, password);
+      console.log(response);
+      if (response.errors.length != 0) {
+        response.errors.map((error) => {
+          this.$refs.notifyAlert.showNotification(error);
+        });
+        return;
+      }
+      this.dialog = false;
+      this.isLogin = response.isLogin;
     },
-    sendFormLogin() {
+    async sendFormLogin() {
       const checkForm = this.$refs.loginFormRef.getValidateState();
       console.log("sendForm:", checkForm);
       if (!checkForm) {
@@ -99,6 +105,16 @@ export default {
       }
       const { email, password } = this.$refs.loginFormRef.getData();
       console.log(email, password);
+      const response = await loginUser(email, password);
+      console.log(response);
+      if (response.errors.length != 0) {
+        response.errors.map((error) => {
+          this.$refs.notifyAlert.showNotification(error);
+        });
+        return;
+      }
+      this.dialog = false;
+      this.isLogin = response.isLogin;
     },
     sendForm() {
       if (this.mode === "login") {
