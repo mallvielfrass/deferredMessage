@@ -6,8 +6,10 @@
     <div v-else class="ml-auto padding-right">
       <v-btn variant="outlined" @click="AuthFrame"> Login</v-btn>
     </div>
+
     <v-dialog v-model="dialog" max-width="500px">
       <v-card>
+        <NotifyAlert ref="notifyAlert" />
         <div v-if="mode === 'login'">
           <LoginForm ref="loginFormRef" />
         </div>
@@ -46,6 +48,7 @@
 <script>
 import LoginForm from "@/components/LoginForm.vue";
 import RegisterForm from "@/components/RegisterForm.vue";
+import NotifyAlert from "@/components/NotifyAlert.vue";
 export default {
   data() {
     return {
@@ -63,11 +66,9 @@ export default {
   components: {
     LoginForm,
     RegisterForm,
+    NotifyAlert,
   },
   methods: {
-    checkLoginForm() {
-      return this.$refs.loginFormRef.getValidateState();
-    },
     logOut() {
       this.isLogin = false;
       console.log("logout");
@@ -76,8 +77,37 @@ export default {
     AuthFrame() {
       this.dialog = true;
     },
+    sendFormRegister() {
+      const checkForm = this.$refs.registerFormRef.getValidateState();
+      console.log("sendForm:", checkForm);
+      if (!checkForm) {
+        return this.$refs.notifyAlert.showNotification(
+          "Please fill in all fields correctly"
+        );
+      }
+      const { username, email, password } =
+        this.$refs.registerFormRef.getData();
+      console.log(username, email, password);
+    },
+    sendFormLogin() {
+      const checkForm = this.$refs.loginFormRef.getValidateState();
+      console.log("sendForm:", checkForm);
+      if (!checkForm) {
+        return this.$refs.notifyAlert.showNotification(
+          "Please fill in all fields correctly"
+        );
+      }
+      const { email, password } = this.$refs.loginFormRef.getData();
+      console.log(email, password);
+    },
     sendForm() {
-      console.log("sendForm:", this.checkLoginForm());
+      if (this.mode === "login") {
+        return this.sendFormLogin();
+      }
+
+      if (this.mode === "register") {
+        return this.sendFormRegister();
+      }
     },
     closeDialog() {
       this.dialog = false;

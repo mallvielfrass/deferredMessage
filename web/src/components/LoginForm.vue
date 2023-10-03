@@ -64,6 +64,12 @@ export default {
     getValidateState() {
       return this.valid ? this.valid : false;
     },
+    getData() {
+      return {
+        email: this.email,
+        password: this.password,
+      };
+    },
   },
 };
 </script>
