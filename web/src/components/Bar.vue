@@ -1,7 +1,7 @@
 <template>
   <v-app-bar color="#6A76AB" dark shrink-on-scroll prominent class="my-app-bar">
     <div v-if="isLogin" class="ml-auto padding-right">
-      <v-btn variant="outlined" @click="logOut"> Logout</v-btn>
+      <v-btn variant="outlined" @click="logout"> Logout</v-btn>
     </div>
     <div v-else class="ml-auto padding-right">
       <v-btn variant="outlined" @click="AuthFrame"> Login</v-btn>
@@ -54,9 +54,10 @@ import { registerUser, loginUser } from "@/api/auth.js";
 export default {
   data() {
     return {
-      dialog: true,
+      dialog: false,
       errors: [],
       mode: "login",
+      isLogin: false,
     };
   },
   components: {
@@ -64,10 +65,15 @@ export default {
     RegisterForm,
     NotifyAlert,
   },
+  mounted: async function () {
+    console.log("mounted");
+    this.checkLoginFromLocalStorage();
+  },
   methods: {
-    logOut() {
-      this.isLogin = false;
+    logout: async function () {
       console.log("logout");
+      localStorage.removeItem("token");
+      this.isLogin = false;
     },
 
     AuthFrame() {
@@ -130,6 +136,38 @@ export default {
     },
     toggleMode() {
       this.mode = this.mode === "login" ? "register" : "login";
+    },
+    checkLoginFromLocalStorage: async function () {
+      const token = localStorage.getItem("token");
+      //const dateExpiration = localStorage.getItem("expiration");
+      //const logTime= localStorage.getItem("logtime");
+      if (token) {
+        this.isLogin = false;
+        fetch("/api/auth/user/ping", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `${token}`,
+          },
+        })
+          .then(async (responseStream) => {
+            const response = await responseStream.json();
+            if (responseStream.status === 200 && response.message === "pong") {
+              this.isLogin = true;
+              return console.log("login success:", this.isLogin);
+            }
+            localStorage.removeItem("token");
+            return console.log("login fail:", this.isLogin, response);
+          })
+          .catch((error) => {
+            console.log("login fail:", this.isLogin, error);
+            this.isLogin = false;
+            localStorage.removeItem("token");
+          });
+      } else {
+        console.log("not login");
+        this.isLogin = false;
+      }
     },
   },
 };

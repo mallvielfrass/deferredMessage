@@ -59,7 +59,6 @@ export const loginUser = async (mail, password) => {
   let isLogin = false;
 
   console.log("login");
-  errors = [];
   await fetch("/api/nauth/login", {
     method: "POST",
     headers: {
