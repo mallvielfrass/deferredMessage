@@ -18,6 +18,7 @@ type Network interface {
 	GetNetworkByID(id primitive.ObjectID) (network.NetworkScheme, bool, error)
 	GetNetworkByIdentifier(identifier string) (network.NetworkScheme, bool, error)
 	CreateNetwork(name string, identifier string) (network.NetworkScheme, error)
+	GetAllNetworks() ([]network.NetworkScheme, error)
 }
 type Chat interface {
 	GetChatByID(id primitive.ObjectID) (chat.ChatScheme, bool, error)

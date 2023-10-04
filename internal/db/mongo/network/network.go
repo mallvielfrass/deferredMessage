@@ -87,6 +87,32 @@ func (c Network) CreateNetwork(name string, identifier string) (NetworkScheme, e
 	return Network, nil
 }
 
+// GetAllNetworks
+func (c Network) GetAllNetworks() ([]NetworkScheme, error) {
+	var findedNetworks []NetworkScheme
+	cur, err := c.ct.Find(context.TODO(), bson.M{})
+	if err != nil {
+		return nil, err
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	defer cur.Close(context.TODO())
+	for cur.Next(context.TODO()) {
+		var network NetworkScheme
+		err := cur.Decode(&network)
+		if err != nil {
+			return nil, err
+		}
+		findedNetworks = append(findedNetworks, network)
+	}
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+	return findedNetworks, nil
+}
+
 // func (c Network) GetNetworksByArrayID(Networks []primitive.ObjectID) ([]NetworkScheme, error) {
 // 	var findedNetworks []NetworkScheme
 // 	cur, err := c.ct.Find(context.TODO(), bson.M{"_id": bson.M{"$in": Networks}})

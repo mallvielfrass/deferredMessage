@@ -136,9 +136,17 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 	r.GET("/ping", ping)
 
 	r.GET("/networks", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"networks": []Network{
-			{Name: "Telegram official bot", Identifier: "telegram_official_bot"},
-		}})
+		networks, err := n.db.Collections.Network.GetAllNetworks()
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		var networksResponse []Network
+		for _, network := range networks {
+			networksResponse = append(networksResponse, Network{Name: network.Name, Identifier: network.Identifier})
+		}
+
+		c.JSON(http.StatusOK, gin.H{"networks": networksResponse})
 	})
 	r.POST("/networks", func(c *gin.Context) {
 		body, exist := dto.GetStruct[Network](c, Network{})
