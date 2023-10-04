@@ -2,7 +2,9 @@
   <v-app>
     <Bar @setloginstate="setloginstate" />
     <div class="padding-top"></div>
-    <div v-if="isLogin">Home</div>
+    <div v-if="isLogin">
+      <router-view />
+    </div>
   </v-app>
 </template>
 
