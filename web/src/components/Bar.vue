@@ -67,13 +67,15 @@ export default {
   },
   mounted: async function () {
     console.log("mounted");
-    this.checkLoginFromLocalStorage();
+    await this.checkLoginFromLocalStorage();
+    this.$emit("setloginstate", this.isLogin);
   },
   methods: {
     logout: async function () {
       console.log("logout");
       localStorage.removeItem("token");
       this.isLogin = false;
+      this.$emit("setloginstate", this.isLogin);
     },
 
     AuthFrame() {
@@ -100,6 +102,7 @@ export default {
       }
       this.dialog = false;
       this.isLogin = response.isLogin;
+      this.$emit("setloginstate", this.isLogin);
     },
     async sendFormLogin() {
       const checkForm = this.$refs.loginFormRef.getValidateState();
@@ -121,6 +124,7 @@ export default {
       }
       this.dialog = false;
       this.isLogin = response.isLogin;
+      this.$emit("setloginstate", this.isLogin);
     },
     sendForm() {
       if (this.mode === "login") {

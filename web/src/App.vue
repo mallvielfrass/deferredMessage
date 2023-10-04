@@ -1,7 +1,8 @@
 <template>
   <v-app>
-    <Bar />
+    <Bar @setloginstate="setloginstate" />
     <div class="padding-top"></div>
+    <div v-if="isLogin">Home</div>
   </v-app>
 </template>
 
@@ -11,23 +12,12 @@ export default {
   name: "App",
   data: () => ({
     isLogin: false,
-    dialog: false,
   }),
   components: { Bar },
   methods: {
-    logout() {
-      console.log("logout");
-      this.isLogin = false;
-    },
-    login() {
-      console.log("login");
-      this.isLogin = true;
-    },
-    openDialog() {
-      this.dialog = true;
-    },
-    closeDialog() {
-      this.dialog = false;
+    setloginstate(state) {
+      console.log("setloginstate", state);
+      this.isLogin = state;
     },
   },
 };
