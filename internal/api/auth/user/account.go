@@ -200,7 +200,33 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		c.JSON(http.StatusOK, gin.H{"chats": chats, "offset": offset, "count": count})
 	})
 	userChats.POST("/", func(c *gin.Context) {
+		body, exist := dto.GetStruct[Chat](c, Chat{})
+		if !exist {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no body"})
+			return
+		}
+		network, isExist, err := n.db.Collections.Network.GetNetworkByIdentifier(body.NetworkIdentifer)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if !isExist {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "network not found"})
+			return
+		}
 
+		createdChat, err := n.db.Collections.Chat.CreateChat(body.Name, network.Identifier, network.ID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		linker, err := utils.Encrypt(createdChat.ID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"chat": gin.H{"linker": linker, "id": createdChat.ID, "name": createdChat.Name, "networkIdentifer": createdChat.NetworkIdentifer, "networkId": createdChat.NetworkID, "verified": createdChat.Verified}})
 	})
 	return r
 }

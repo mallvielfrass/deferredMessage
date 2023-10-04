@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"deferredMessage/internal/db/mongo/chat"
+	"deferredMessage/internal/db/mongo/network"
 	"deferredMessage/internal/db/mongo/session"
 	"deferredMessage/internal/db/mongo/user"
 	"fmt"
@@ -13,10 +14,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type Network interface {
+	GetNetworkByID(id primitive.ObjectID) (network.NetworkScheme, bool, error)
+	GetNetworkByIdentifier(identifier string) (network.NetworkScheme, bool, error)
+	CreateNetwork(identifier string) (network.NetworkScheme, error)
+}
 type Chat interface {
 	GetChatByID(id primitive.ObjectID) (chat.ChatScheme, bool, error)
 	UpdateChat(chat.ChatScheme) error
-	CreateChat(name string, network string) (chat.ChatScheme, error)
+	CreateChat(name string, networkIdentifer string, networkID string) (chat.ChatScheme, error)
 	GetChatsByArrayID(chats []primitive.ObjectID) ([]chat.ChatScheme, error)
 }
 
@@ -24,6 +30,7 @@ type User interface {
 	CheckUserByMail(mailOrUsername string) (bool, error)
 	CreateUser(name, mail, hash string) (user.UserScheme, error)
 	GetUserByID(id primitive.ObjectID) (user.UserScheme, bool, error)
+	SetUserAdmin(id primitive.ObjectID) (user.UserScheme, bool, error)
 	GetUserByMail(mail string) (user.UserScheme, bool, error)
 }
 type Session interface {
@@ -34,6 +41,7 @@ type Collection struct {
 	Chat    Chat
 	User    User
 	Session Session
+	Network Network
 }
 type DB struct {
 	driver      *mongo.Database
@@ -71,6 +79,7 @@ func (db *DB) mountSchemes() {
 		Chat:    chat.Init(db.driver),
 		User:    user.Init(db.driver),
 		Session: session.Init(db.driver),
+		Network: network.Init(db.driver),
 	}
 }
 
