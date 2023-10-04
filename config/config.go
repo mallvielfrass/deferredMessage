@@ -1,6 +1,7 @@
 package config
 
 import (
+	"deferredMessage/internal/utils"
 	"fmt"
 	"os"
 	"strconv"
@@ -69,6 +70,14 @@ func InitConfig(confPath string) (Config, error) {
 		fmt.Printf("warn: %s\n", fmt.Errorf("env '%s' not found", "TELEGRAM_BOT_TOKEN"))
 	} else {
 		defaultConf.TelegramBotToken = TELEGRAM_BOT_TOKEN
+	}
+	ADMIN_KEY, exist := os.LookupEnv("ADMIN_KEY")
+	if !exist {
+		fmt.Printf("warn: %s\n", fmt.Errorf("env '%s' not found", "ADMIN_KEY"))
+		defaultConf.AdminKey = utils.GenerateString(16)
+		os.Setenv("ADMIN_KEY", defaultConf.AdminKey)
+	} else {
+		defaultConf.AdminKey = ADMIN_KEY
 	}
 	return defaultConf, nil
 }

@@ -5,4 +5,5 @@ type Config struct {
 	DBHost           string
 	DBName           string
 	TelegramBotToken string
+	AdminKey         string
 }

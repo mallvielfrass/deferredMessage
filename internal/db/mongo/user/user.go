@@ -13,10 +13,11 @@ import (
 )
 
 type UserScheme struct {
-	Name string `bson:"name"`
-	Mail string `bson:"mail"`
-	Hash string `bson:"hash"`
-	ID   string `bson:"_id"`
+	Name  string `bson:"name"`
+	Mail  string `bson:"mail"`
+	Hash  string `bson:"hash"`
+	ID    string `bson:"_id"`
+	Admin bool   `bson:"admin"`
 	//Chats array with id of chats refferenced to ChatScheme
 	Chats []primitive.ObjectID `bson:"chats"`
 }
@@ -117,4 +118,14 @@ func (user User) AddChatToUser(chatID primitive.ObjectID, userID primitive.Objec
 	}
 	fmt.Println(res)
 	return nil
+}
+
+// SetUserAdmin(id primitive.ObjectID) (user.UserScheme, bool, error)
+func (user User) SetUserAdmin(id primitive.ObjectID) (UserScheme, bool, error) {
+	_, err := user.ct.UpdateOne(context.TODO(), bson.M{"_id": id}, bson.M{"$set": bson.M{"admin": true}})
+	if err != nil {
+		return UserScheme{}, false, err
+	}
+
+	return user.GetUserByID(id)
 }
