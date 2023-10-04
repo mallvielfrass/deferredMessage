@@ -80,11 +80,6 @@ func ping(c *gin.Context) {
 	})
 }
 
-type Network struct {
-	Name       string `json:"name"`
-	Identifier string `json:"identifier"`
-}
-
 func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 	r := router.Group("/")
 	r.Use(n.CheckAuth())
