@@ -16,6 +16,7 @@ export default {
           name: "home",
           url: "/home",
         },
+        { name: "account", url: "/account" },
       ],
     };
   },
