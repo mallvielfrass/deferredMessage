@@ -40,7 +40,7 @@
             <v-row justify="center" align="center">
               <v-col cols="12" md="7">
                 <v-select
-                  label="Select country"
+                  label="Select network"
                   v-model="socialNetwork"
                   @update:modelValue="selectSocialNetwork"
                   :items="socialNetworkList"
