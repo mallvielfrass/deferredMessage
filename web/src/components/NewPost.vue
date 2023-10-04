@@ -44,7 +44,9 @@
                   v-model="socialNetwork"
                   @update:modelValue="selectSocialNetwork"
                   :items="socialNetworkList"
-                ></v-select>
+                  :item-props="itemProps"
+                >
+                </v-select>
               </v-col>
             </v-row>
           </v-container>
@@ -67,21 +69,38 @@
   </v-dialog>
 </template>
 <script>
+import { getNetworks, getChats } from "@/api/networks.js";
 export default {
   data() {
     return {
       dialog: false,
-      socialNetwork: "",
+      socialNetwork: {},
       socialNetworkList: [],
+      showChats: false,
+      chats: [],
     };
   },
   mounted() {
     this.getSocialNetworkList();
   },
   methods: {
-    getSocialNetworkList() {},
-    selectSocialNetwork(network) {
+    async getChatsList() {
+      const response = await getChats();
+      console.log(response);
+      this.chats = response;
+    },
+    async getSocialNetworkList() {
+      this.socialNetworkList = await getNetworks();
+    },
+    itemProps(item) {
+      return {
+        title: item.name,
+        subtitle: item.identifier,
+      };
+    },
+    async selectSocialNetwork(network) {
       console.log("Network selected:", network);
+      await this.getChatsList();
     },
     closeDialog() {
       this.dialog = false;
