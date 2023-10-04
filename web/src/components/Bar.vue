@@ -1,5 +1,9 @@
 <template>
   <v-app-bar color="#6A76AB" dark shrink-on-scroll prominent class="my-app-bar">
+    <v-container v-if="isLogin">
+      <MenuList />
+    </v-container>
+
     <div v-if="isLogin" class="ml-auto padding-right">
       <v-btn variant="outlined" @click="logout"> Logout</v-btn>
     </div>
@@ -50,7 +54,7 @@ import LoginForm from "@/components/LoginForm.vue";
 import RegisterForm from "@/components/RegisterForm.vue";
 import NotifyAlert from "@/components/NotifyAlert.vue";
 import { registerUser, loginUser } from "@/api/auth.js";
-
+import MenuList from "@/components/MenuList.vue";
 export default {
   data() {
     return {
@@ -64,6 +68,7 @@ export default {
     LoginForm,
     RegisterForm,
     NotifyAlert,
+    MenuList,
   },
   mounted: async function () {
     console.log("mounted");
