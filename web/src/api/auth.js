@@ -104,3 +104,6 @@ export const loginUser = async (mail, password) => {
   });
   return { isLogin, errors };
 };
+export const getToken = () => {
+  return localStorage.getItem("token");
+};

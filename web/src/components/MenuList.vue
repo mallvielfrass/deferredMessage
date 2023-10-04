@@ -13,8 +13,8 @@ export default {
     return {
       pages: [
         {
-          name: "home",
-          url: "/home",
+          name: "posts",
+          url: "/posts",
         },
         { name: "account", url: "/account" },
       ],
