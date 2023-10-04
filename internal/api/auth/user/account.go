@@ -133,13 +133,14 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			count = diff
 		}
 		if count < 0 {
-			c.JSON(http.StatusOK, gin.H{"chats": gin.H{}})
+			c.JSON(http.StatusOK, gin.H{"chats": []gin.H{}})
 			return
 		}
 		userChatsId := user.Chats
 		chatsId := userChatsId[offset : offset+count]
 		if len(chatsId) == 0 {
-			c.JSON(http.StatusOK, gin.H{"chats": gin.H{}})
+			//empty array
+			c.JSON(http.StatusOK, gin.H{"chats": []gin.H{}})
 			return
 		}
 		chats, err := n.db.Collections.Chat.GetChatsByArrayID(chatsId)
