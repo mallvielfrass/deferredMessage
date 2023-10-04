@@ -68,6 +68,7 @@ export default {
   mounted: async function () {
     console.log("mounted");
     await this.checkLoginFromLocalStorage();
+    console.log("mounted setloginstate", this.isLogin);
     this.$emit("setloginstate", this.isLogin);
   },
   methods: {
@@ -158,6 +159,7 @@ export default {
             const response = await responseStream.json();
             if (responseStream.status === 200 && response.message === "pong") {
               this.isLogin = true;
+              this.$emit("setloginstate", this.isLogin);
               return console.log("login success:", this.isLogin);
             }
             localStorage.removeItem("token");
@@ -166,11 +168,13 @@ export default {
           .catch((error) => {
             console.log("login fail:", this.isLogin, error);
             this.isLogin = false;
+            this.$emit("setloginstate", this.isLogin);
             localStorage.removeItem("token");
           });
       } else {
         console.log("not login");
         this.isLogin = false;
+        this.$emit("setloginstate", this.isLogin);
       }
     },
   },

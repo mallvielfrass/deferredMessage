@@ -1,5 +1,10 @@
-<template>
-  <HelloWorld />
-</template>
+<template>Home</template>
 
-<script setup></script>
+<script>
+export default {
+  data() {
+    return {};
+  },
+  methods: {},
+};
+</script>
