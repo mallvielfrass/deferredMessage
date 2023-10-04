@@ -14,6 +14,7 @@ import (
 
 type NetworkScheme struct {
 	ID         string `bson:"_id"`
+	Name       string `bson:"name"`
 	Identifier string `bson:"identifier"`
 }
 
@@ -72,10 +73,11 @@ func (c Network) GetNetworkByIdentifier(identifier string) (NetworkScheme, bool,
 	}
 	return findedNetwork, true, nil
 }
-func (c Network) CreateNetwork(identifier string) (NetworkScheme, error) {
+func (c Network) CreateNetwork(name string, identifier string) (NetworkScheme, error) {
 	id := primitive.NewObjectID()
 	Network := NetworkScheme{
 		ID:         id.Hex(),
+		Name:       name,
 		Identifier: identifier,
 	}
 	_, err := c.ct.InsertOne(context.TODO(), Network)
