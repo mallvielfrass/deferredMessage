@@ -16,7 +16,7 @@ type ChatScheme struct {
 	Name              string             `bson:"name"`
 	ID                primitive.ObjectID `bson:"_id"`
 	LinkOrIdInNetwork string             `bson:"linkOrIdInNetwork"`
-	NetworkIdentifer  string             `bson:"networkIdentifier"`
+	NetworkIdentifier string             `bson:"networkIdentifier"`
 	NetworkID         string             `bson:"networkID"`
 	Verified          bool               `bson:"verified"`
 }
@@ -63,17 +63,17 @@ func (c Chat) UpdateChat(chat ChatScheme) error {
 	return err
 }
 
-func (c Chat) CreateChat(name string, networkIdentifer string, networkID string) (ChatScheme, error) {
+func (c Chat) CreateChat(name string, networkIdentifier string, networkID string) (ChatScheme, error) {
 
 	chat := ChatScheme{
 
 		Name:              name,
-		NetworkIdentifer:  networkIdentifer,
+		NetworkIdentifier: networkIdentifier,
 		NetworkID:         networkID,
 		LinkOrIdInNetwork: "",
 		Verified:          false,
 	}
-	res, err := c.ct.InsertOne(context.TODO(), bson.M{"name": chat.Name, "networkIdentifier": chat.NetworkIdentifer, "networkID": chat.NetworkID, "linkOrIdInNetwork": chat.LinkOrIdInNetwork, "verified": chat.Verified})
+	res, err := c.ct.InsertOne(context.TODO(), bson.M{"name": chat.Name, "networkIdentifier": chat.NetworkIdentifier, "networkID": chat.NetworkID, "linkOrIdInNetwork": chat.LinkOrIdInNetwork, "verified": chat.Verified})
 	if err != nil {
 		return ChatScheme{}, err
 	}

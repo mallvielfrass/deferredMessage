@@ -219,7 +219,19 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"chats": chats, "offset": offset, "count": count})
+
+		var respArray []Chat
+		for _, chat := range chats {
+			respArray = append(respArray, Chat{
+				ID:                chat.ID.Hex(),
+				Name:              chat.Name,
+				NetworkIdentifier: chat.NetworkIdentifier,
+				NetworkID:         chat.NetworkID,
+				LinkOrIdInNetwork: chat.LinkOrIdInNetwork,
+				Verified:          chat.Verified,
+			})
+		}
+		c.JSON(http.StatusOK, gin.H{"chats": respArray, "offset": offset, "count": count})
 	})
 	userChats.POST("/", func(c *gin.Context) {
 		body, exist := dto.GetStruct[Chat](c, Chat{})
@@ -227,7 +239,8 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no body"})
 			return
 		}
-		network, isExist, err := n.db.Collections.Network.GetNetworkByIdentifier(body.NetworkIdentifer)
+		network, isExist, err := n.db.Collections.Network.GetNetworkByIdentifier(body.NetworkIdentifier)
+
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -265,7 +278,7 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"chat": gin.H{"linker": linker, "id": createdChat.ID, "name": createdChat.Name, "networkIdentifer": createdChat.NetworkIdentifer, "networkId": createdChat.NetworkID, "verified": createdChat.Verified}})
+		c.JSON(http.StatusOK, gin.H{"chat": gin.H{"linker": linker, "id": createdChat.ID, "name": createdChat.Name, "networkIdentifier": createdChat.NetworkIdentifier, "networkId": createdChat.NetworkID, "verified": createdChat.Verified}})
 	})
 	return r
 }

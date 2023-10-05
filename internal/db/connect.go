@@ -23,7 +23,7 @@ type Network interface {
 type Chat interface {
 	GetChatByID(id primitive.ObjectID) (chat.ChatScheme, bool, error)
 	UpdateChat(chat.ChatScheme) error
-	CreateChat(name string, networkIdentifer string, networkID string) (chat.ChatScheme, error)
+	CreateChat(name string, networkIdentifier string, networkID string) (chat.ChatScheme, error)
 	GetChatsByArrayID(chats []primitive.ObjectID) ([]chat.ChatScheme, error)
 }
 
