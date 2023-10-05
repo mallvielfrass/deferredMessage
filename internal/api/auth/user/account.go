@@ -183,6 +183,7 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		}
 		if !exist {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "user not found"})
+			return
 		}
 		//get from url query params [count, offset]
 		countString := c.DefaultQuery("count", "10")
