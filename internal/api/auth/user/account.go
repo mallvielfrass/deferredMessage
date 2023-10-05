@@ -261,7 +261,7 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
 			return
 		}
-		createdChat, err := n.db.Collections.Chat.CreateChat(body.Name, network.Identifier, network.ID)
+		createdChat, err := n.db.Collections.Chat.CreateChat(body.Name, network.Identifier, network.ID, userID)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -279,6 +279,71 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		}
 
 		c.JSON(http.StatusOK, gin.H{"chat": gin.H{"linker": linker, "id": createdChat.ID, "name": createdChat.Name, "networkIdentifier": createdChat.NetworkIdentifier, "networkId": createdChat.NetworkID, "verified": createdChat.Verified}})
+	})
+	userChats.PUT("/:id", func(c *gin.Context) {
+		var body map[string]interface{}
+		if err := c.ShouldBindJSON(&body); err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
+		}
+		params := make(map[string]string)
+		//check name in body
+		if body["name"] != nil {
+			switch body["name"].(type) {
+			case string:
+				params["name"] = body["name"].(string)
+			}
+
+		}
+		//linkOrIdInNetwork
+		if body["linkOrIdInNetwork"] != nil {
+			switch body["linkOrIdInNetwork"].(type) {
+			case string:
+				params["linkOrIdInNetwork"] = body["linkOrIdInNetwork"].(string)
+			}
+		}
+		fmt.Println(params)
+
+		//user
+		userSession, ok := c.Get("session")
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no session"})
+			return
+		}
+		session := userSession.(session.SessionScheme)
+		fmt.Println(session)
+		userID, err := primitive.ObjectIDFromHex(session.UserID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
+			return
+		}
+		chatId := c.Param("id")
+		fmt.Printf("chatId: %v\n", chatId)
+		chatObjectID, err := primitive.ObjectIDFromHex(chatId)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid chat id"})
+			return
+		}
+		chat, exist, err := n.db.Collections.Chat.GetChatByID(chatObjectID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if !exist {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "chat not found"})
+			return
+		}
+		if chat.Creator != userID {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "you are not creator"})
+			return
+		}
+		err = n.db.Collections.Chat.UpdateChat(chatObjectID, params)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"status": "ok"})
+
 	})
 	return r
 }
