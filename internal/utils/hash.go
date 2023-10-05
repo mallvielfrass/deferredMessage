@@ -1,9 +1,11 @@
 package utils
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
@@ -27,57 +29,89 @@ var (
 )
 
 func Encrypt(plaintext string) (string, error) {
-	aes, err := aes.NewCipher([]byte(secretKey))
+	// Convert the secret key to 32-byte array
+	key := []byte(secretKey)
+
+	// Create a new AES cipher block using the key
+	block, err := aes.NewCipher(key)
 	if err != nil {
 		return "", err
 	}
 
-	gcm, err := cipher.NewGCM(aes)
-	if err != nil {
+	// Generate a new random initialization vector
+	iv := make([]byte, aes.BlockSize)
+	if _, err := rand.Read(iv); err != nil {
 		return "", err
 	}
 
-	// We need a 12-byte nonce for GCM (modifiable if you use cipher.NewGCMWithNonceSize())
-	// A nonce should always be randomly generated for every encryption.
-	nonce := make([]byte, gcm.NonceSize())
-	_, err = rand.Read(nonce)
-	if err != nil {
-		return "", err
-	}
+	// Create a new AES cipher block mode using the block and IV
+	mode := cipher.NewCBCEncrypter(block, iv)
 
-	// ciphertext here is actually nonce+ciphertext
-	// So that when we decrypt, just knowing the nonce size
-	// is enough to separate it from the ciphertext.
-	ciphertext := gcm.Seal(nonce, nonce, []byte(plaintext), nil)
+	// Pad the plaintext to the nearest multiple of the block size
+	paddedPlaintext := padPlaintext([]byte(plaintext), block.BlockSize())
 
-	return string(ciphertext), nil
+	// Create a byte slice for the ciphertext
+	ciphertext := make([]byte, len(paddedPlaintext))
+
+	// Encrypt the padded plaintext using the mode
+	mode.CryptBlocks(ciphertext, paddedPlaintext)
+
+	// Concatenate the IV and ciphertext
+	encrypted := append(iv, ciphertext...)
+
+	// Encode the encrypted byte slice to base64
+	encoded := base64.URLEncoding.EncodeToString(encrypted)
+
+	// Return the encrypted string in UTF-8
+	return encoded, nil
 }
 
-func Decrypt(ciphertext string) (string, error) {
-	aes, err := aes.NewCipher([]byte(secretKey))
+func Decrypt(encrypted string) (string, error) {
+	// Convert the secret key to 32-byte array
+	key := []byte(secretKey)
+
+	// Decode the base64 encoded string
+	decoded, err := base64.URLEncoding.DecodeString(encrypted)
 	if err != nil {
 		return "", err
 	}
 
-	gcm, err := cipher.NewGCM(aes)
+	// Extract the IV and ciphertext from the decoded byte slice
+	iv := decoded[:aes.BlockSize]
+	ciphertext := decoded[aes.BlockSize:]
+
+	// Create a new AES cipher block using the key
+	block, err := aes.NewCipher(key)
 	if err != nil {
 		return "", err
 	}
 
-	// Since we know the ciphertext is actually nonce+ciphertext
-	// And len(nonce) == NonceSize(). We can separate the two.
-	nonceSize := gcm.NonceSize()
-	if len(ciphertext) < nonceSize {
-		return "", fmt.Errorf("invalid ciphertext")
-	}
-	nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
+	// Create a new AES cipher block mode using the block and IV
+	mode := cipher.NewCBCDecrypter(block, iv)
 
-	plaintext, err := gcm.Open(nil, []byte(nonce), []byte(ciphertext), nil)
-	if err != nil {
-		return "", err
-	}
+	// Create a byte slice for the padded plaintext
+	paddedPlaintext := make([]byte, len(ciphertext))
 
-	return string(plaintext), nil
+	// Decrypt the ciphertext using the mode
+	mode.CryptBlocks(paddedPlaintext, ciphertext)
+
+	// Unpad the padded plaintext
+	unpaddedPlaintext := unpadPlaintext(paddedPlaintext)
+
+	// Return the decrypted plaintext
+	return string(unpaddedPlaintext), nil
+}
+func unpadPlaintext(paddedPlaintext []byte) []byte {
+	padding := int(paddedPlaintext[len(paddedPlaintext)-1])
+	unpadded := paddedPlaintext[:len(paddedPlaintext)-padding]
+	return unpadded
+}
+
+// padPlaintext pads the plaintext to the nearest multiple of the block size.
+func padPlaintext(plaintext []byte, blockSize int) []byte {
+	padding := blockSize - (len(plaintext) % blockSize)
+	padded := append(plaintext, bytes.Repeat([]byte{byte(padding)}, padding)...)
+	return padded
 }
 func GenerateString(length int) string {
 	b := make([]byte, length)
