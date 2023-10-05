@@ -1,6 +1,7 @@
 <template>
   <div>
     <NewChat @eventchatcreated="eventChatCreated" class="ms-10 pa-1" />
+
     <h1 class="ms-10 pa-2">Chats</h1>
     <div v-for="chat in chats" :key="chat._id" class="ms-10 pa-2">
       <v-card max-width="500">
@@ -9,9 +10,8 @@
           <p class="text-h4 text--primary">{{ chat.name }}</p>
         </v-card-text>
         <v-card-actions>
-          <v-btn variant="text" color="teal-accent-4" @click="reveal = true">
-            Settings
-          </v-btn>
+          <ChatSettings :chat="chat" />
+
           <v-btn
             variant="text"
             color="teal-accent-4"
@@ -26,14 +26,18 @@
 </template>
 <script>
 import NewChat from "@/components/NewChat.vue";
+import ChatSettings from "@/components/ChatSettings.vue";
 import { getChats } from "@/api/networks";
 export default {
   components: {
     NewChat,
+    ChatSettings,
   },
   data() {
     return {
       chats: [],
+      currentChat: {},
+      chatSettingsDialog: false,
       page: 1,
       limit: 10,
     };
