@@ -235,13 +235,30 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "network not found"})
 			return
 		}
-
+		userSession, ok := c.Get("session")
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no session"})
+			return
+		}
+		session := userSession.(session.SessionScheme)
+		fmt.Println(session)
+		userID, err := primitive.ObjectIDFromHex(session.UserID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
+			return
+		}
 		createdChat, err := n.db.Collections.Chat.CreateChat(body.Name, network.Identifier, network.ID)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		linker, err := utils.Encrypt(createdChat.ID)
+
+		err = n.db.Collections.User.AddChatToUser(createdChat.ID, userID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		linker, err := utils.Encrypt(createdChat.ID.Hex())
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return

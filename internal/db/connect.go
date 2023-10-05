@@ -33,6 +33,7 @@ type User interface {
 	GetUserByID(id primitive.ObjectID) (user.UserScheme, bool, error)
 	SetUserAdmin(id primitive.ObjectID) (user.UserScheme, bool, error)
 	GetUserByMail(mail string) (user.UserScheme, bool, error)
+	AddChatToUser(chatID primitive.ObjectID, userID primitive.ObjectID) error
 }
 type Session interface {
 	GetSessionByID(id primitive.ObjectID) (session.SessionScheme, bool, error)

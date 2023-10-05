@@ -13,12 +13,12 @@ import (
 )
 
 type ChatScheme struct {
-	Name              string `bson:"name"`
-	ID                string `bson:"_id"`
-	LinkOrIdInNetwork string `bson:"linkOrIdInNetwork"`
-	NetworkIdentifer  string `bson:"networkIdentifier"`
-	NetworkID         string `bson:"networkID"`
-	Verified          bool   `bson:"verified"`
+	Name              string             `bson:"name"`
+	ID                primitive.ObjectID `bson:"_id"`
+	LinkOrIdInNetwork string             `bson:"linkOrIdInNetwork"`
+	NetworkIdentifer  string             `bson:"networkIdentifier"`
+	NetworkID         string             `bson:"networkID"`
+	Verified          bool               `bson:"verified"`
 }
 
 type Chat struct {
@@ -64,19 +64,20 @@ func (c Chat) UpdateChat(chat ChatScheme) error {
 }
 
 func (c Chat) CreateChat(name string, networkIdentifer string, networkID string) (ChatScheme, error) {
-	id := primitive.NewObjectID()
+
 	chat := ChatScheme{
-		ID:                id.Hex(),
+
 		Name:              name,
 		NetworkIdentifer:  networkIdentifer,
 		NetworkID:         networkID,
 		LinkOrIdInNetwork: "",
 		Verified:          false,
 	}
-	_, err := c.ct.InsertOne(context.TODO(), chat)
+	res, err := c.ct.InsertOne(context.TODO(), bson.M{"name": chat.Name, "networkIdentifier": chat.NetworkIdentifer, "networkID": chat.NetworkID, "linkOrIdInNetwork": chat.LinkOrIdInNetwork, "verified": chat.Verified})
 	if err != nil {
 		return ChatScheme{}, err
 	}
+	chat.ID = res.InsertedID.(primitive.ObjectID)
 	return chat, nil
 }
 func (c Chat) GetChatsByArrayID(chats []primitive.ObjectID) ([]ChatScheme, error) {
@@ -87,9 +88,11 @@ func (c Chat) GetChatsByArrayID(chats []primitive.ObjectID) ([]ChatScheme, error
 	}
 
 	defer cur.Close(context.TODO())
+	fmt.Printf("cur: %#v\n", cur)
 	for cur.Next(context.TODO()) {
 		var chat ChatScheme
 		err := cur.Decode(&chat)
+		fmt.Printf("chat: %#v\n", chat)
 		if err != nil {
 			return nil, err
 		}
