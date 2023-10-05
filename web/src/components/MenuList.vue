@@ -16,6 +16,8 @@ export default {
           name: "posts",
           url: "/posts",
         },
+
+        { name: "chats", url: "/chats" },
         { name: "account", url: "/account" },
       ],
     };
