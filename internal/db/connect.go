@@ -4,6 +4,7 @@ import (
 	"context"
 	"deferredMessage/internal/db/mongo/chat"
 	"deferredMessage/internal/db/mongo/network"
+	"deferredMessage/internal/db/mongo/platform"
 	"deferredMessage/internal/db/mongo/session"
 	"deferredMessage/internal/db/mongo/user"
 	"fmt"
@@ -27,7 +28,12 @@ type Chat interface {
 	CreateChat(name string, networkIdentifier string, networkID string, userID primitive.ObjectID) (chat.ChatScheme, error)
 	GetChatsByArrayID(chats []primitive.ObjectID) ([]chat.ChatScheme, error)
 }
-
+type Platform interface {
+	// GetPlatformByID(id primitive.ObjectID) (platform.PlatformScheme, bool, error)
+	CreatePlatform(name string) (platform.PlatformScheme, error)
+	// UpdatePlatform(platformIdentifier string, data map[string]string) (platform.PlatformScheme, bool, error)
+	GetAllPlatforms() ([]platform.PlatformScheme, error)
+}
 type User interface {
 	CheckUserByMail(mailOrUsername string) (bool, error)
 	CreateUser(name, mail, hash string) (user.UserScheme, error)
@@ -38,13 +44,14 @@ type User interface {
 }
 type Session interface {
 	GetSessionByID(id primitive.ObjectID) (session.SessionScheme, bool, error)
-	CreateSession(UserID string, expire int64, ip string) (session.SessionScheme, error)
+	CreateSession(UserID primitive.ObjectID, expire int64, ip string) (session.SessionScheme, error)
 }
 type Collection struct {
-	Chat    Chat
-	User    User
-	Session Session
-	Network Network
+	Chat     Chat
+	User     User
+	Session  Session
+	Network  Network
+	Platform Platform
 }
 type DB struct {
 	driver      *mongo.Database
@@ -79,10 +86,11 @@ func ConnectDB(url, dbname string) (DB, error) {
 }
 func (db *DB) mountSchemes() {
 	db.Collections = &Collection{
-		Chat:    chat.Init(db.driver),
-		User:    user.Init(db.driver),
-		Session: session.Init(db.driver),
-		Network: network.Init(db.driver),
+		Chat:     chat.Init(db.driver),
+		User:     user.Init(db.driver),
+		Session:  session.Init(db.driver),
+		Network:  network.Init(db.driver),
+		Platform: platform.Init(db.driver),
 	}
 }
 
