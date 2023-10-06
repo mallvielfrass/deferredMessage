@@ -43,7 +43,7 @@ func ping(c *gin.Context) {
 
 func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 	r := router.Group("/")
-	sessionMiddleware := middleware.InitSessionMiddleware(n.db)
+	sessionMiddleware := middleware.InitMiddleware(n.db)
 	r.Use(sessionMiddleware.CheckAuth())
 	r.POST("/admin", func(c *gin.Context) {
 		userSession, ok := c.Get("session")
@@ -53,12 +53,8 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		}
 		session := userSession.(session.SessionScheme)
 		fmt.Println(session)
-		userID, err := primitive.ObjectIDFromHex(session.UserID)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
-			return
-		}
-		_, exist, err := n.db.Collections.User.GetUserByID(userID)
+
+		_, exist, err := n.db.Collections.User.GetUserByID(session.UserID)
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -86,7 +82,7 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
 			return
 		}
-		settedUser, isSetAdmin, err := n.db.Collections.User.SetUserAdmin(userID)
+		settedUser, isSetAdmin, err := n.db.Collections.User.SetUserAdmin(session.UserID)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -129,13 +125,8 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			return
 		}
 		session := userSession.(session.SessionScheme)
-		fmt.Println(session)
-		userID, err := primitive.ObjectIDFromHex(session.UserID)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
-			return
-		}
-		network, err := n.db.Collections.Network.CreateNetwork(body.Name, body.Identifier, body.BotLink, body.BotType, userID)
+
+		network, err := n.db.Collections.Network.CreateNetwork(body.Name, body.Identifier, body.BotLink, body.BotType, session.UserID)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -188,12 +179,8 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		}
 		session := userSession.(session.SessionScheme)
 		fmt.Println(session)
-		userID, err := primitive.ObjectIDFromHex(session.UserID)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
-			return
-		}
-		if userID != network.Creator {
+
+		if session.UserID != network.Creator {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "you are not creator"})
 			return
 		}
@@ -217,12 +204,8 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		}
 		session := userSession.(session.SessionScheme)
 		fmt.Println(session)
-		userID, err := primitive.ObjectIDFromHex(session.UserID)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
-			return
-		}
-		user, exist, err := n.db.Collections.User.GetUserByID(userID)
+
+		user, exist, err := n.db.Collections.User.GetUserByID(session.UserID)
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -303,18 +286,14 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		}
 		session := userSession.(session.SessionScheme)
 		fmt.Println(session)
-		userID, err := primitive.ObjectIDFromHex(session.UserID)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
-			return
-		}
-		createdChat, err := n.db.Collections.Chat.CreateChat(body.Name, network.Identifier, network.ID, userID)
+
+		createdChat, err := n.db.Collections.Chat.CreateChat(body.Name, network.Identifier, network.ID, session.UserID)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		err = n.db.Collections.User.AddChatToUser(createdChat.ID, userID)
+		err = n.db.Collections.User.AddChatToUser(createdChat.ID, session.UserID)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -359,11 +338,7 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		}
 		session := userSession.(session.SessionScheme)
 		fmt.Println(session)
-		userID, err := primitive.ObjectIDFromHex(session.UserID)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
-			return
-		}
+
 		chatId := c.Param("id")
 		//	fmt.Printf("chatId: %v\n", chatId)
 		chatObjectID, err := primitive.ObjectIDFromHex(chatId)
@@ -380,7 +355,7 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "chat not found"})
 			return
 		}
-		if chat.Creator != userID {
+		if chat.Creator != session.UserID {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "you are not creator"})
 			return
 		}

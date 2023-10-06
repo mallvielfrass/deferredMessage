@@ -13,11 +13,11 @@ import (
 )
 
 type UserScheme struct {
-	Name  string `bson:"name"`
-	Mail  string `bson:"mail"`
-	Hash  string `bson:"hash"`
-	ID    string `bson:"_id"`
-	Admin bool   `bson:"admin"`
+	Name  string             `bson:"name"`
+	Mail  string             `bson:"mail"`
+	Hash  string             `bson:"hash"`
+	ID    primitive.ObjectID `bson:"_id"`
+	Admin bool               `bson:"admin"`
 	//Chats array with id of chats refferenced to ChatScheme
 	Chats []primitive.ObjectID `bson:"chats"`
 }

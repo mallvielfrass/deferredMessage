@@ -14,12 +14,12 @@ import (
 )
 
 type SessionScheme struct {
-	ID        string `bson:"_id"`
-	UserID    string `bson:"user_id"`
-	Expire    int64  `bson:"expire"`
-	IP        string `bson:"ip"`
-	Valid     bool   `bson:"valid"`
-	AtCreated int64  `bson:"at_created"`
+	ID        primitive.ObjectID `bson:"_id"`
+	UserID    primitive.ObjectID `bson:"user_id"`
+	Expire    int64              `bson:"expire"`
+	IP        string             `bson:"ip"`
+	Valid     bool               `bson:"valid"`
+	AtCreated int64              `bson:"at_created"`
 }
 type Session struct {
 	ct *mongo.Collection
@@ -64,7 +64,7 @@ func (Session Session) GetSessionByID(id primitive.ObjectID) (SessionScheme, boo
 }
 
 // create Session (name, hash)
-func (Session Session) CreateSession(UserID string, expire int64, ip string) (SessionScheme, error) {
+func (Session Session) CreateSession(UserID primitive.ObjectID, expire int64, ip string) (SessionScheme, error) {
 
 	res, err := Session.ct.InsertOne(context.TODO(), bson.M{"user_id": UserID, "expire": expire, "ip": ip, "valid": true, "at_created": time.Now().Unix()})
 	if err != nil {
