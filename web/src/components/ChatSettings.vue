@@ -15,7 +15,7 @@
             <v-row justify="center" align="center">
               <v-col cols="12" md="7">
                 <v-text-field
-                  v-model="chat.name"
+                  v-model="chatCopy.name"
                   label="Title"
                   required
                   :rules="[(v) => !!v || 'Title is required']"
@@ -25,7 +25,7 @@
             <v-row justify="center" align="center">
               <v-col cols="12" md="7">
                 <v-text-field
-                  v-model="chat.linkOrIdInNetwork"
+                  v-model="chatCopy.linkOrIdInNetwork"
                   label="Link or ID in the network"
                 ></v-text-field>
               </v-col>
@@ -51,7 +51,7 @@
 </template>
 <script>
 import { getNetworks, getChats } from "@/api/networks.js";
-import { createChat } from "@/api/chats.js";
+import { updateChat } from "@/api/chats.js";
 export default {
   props: {
     chat: Object,
@@ -70,28 +70,28 @@ export default {
     };
   },
   methods: {
-    chatIsChanged() {
-      return (
-        this.chat.name !== this.chatCopy.name ||
-        this.chat.linkOrIdInNetwork !== this.chatCopy.linkOrIdInNetwork
-      );
+    chatChanges() {
+      let changed = {};
+      if (this.chat.name !== this.chatCopy.name) {
+        changed.name = this.chatCopy.name;
+      }
+      if (this.chat.linkOrIdInNetwork !== this.chatCopy.linkOrIdInNetwork) {
+        changed.linkOrIdInNetwork = this.chatCopy.linkOrIdInNetwork;
+      }
+      return changed;
     },
     async sendForm() {
       const checkForm = await this.$refs.chatSettingsForm.validate();
       if (!checkForm.valid) return;
-      if (!this.chatIsChanged()) {
+      const changes = this.chatChanges();
+      if (Object.keys(changes).length === 0) {
         this.closeDialog();
         return;
       }
 
-      //   const response = await createChat({
-      // 	name: this.chatCopy.name,
-      // 	linkOrIdInNetwork: this.chatCopy.linkOrIdInNetwork,
-      // 	networkIdentifier: this.chat.networkIdentifier,
-      //   });
-      //   console.log(response);
-      //   this.$emit("eventchatcreated");
-      //   this.closeDialog();
+      const response = await updateChat(this.chat._id, changes);
+      this.$emit("eventchatupdated");
+      this.closeDialog();
     },
     closeDialog() {
       this.dialog = false;

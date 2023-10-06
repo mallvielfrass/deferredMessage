@@ -10,7 +10,7 @@
           <p class="text-h4 text--primary">{{ chat.name }}</p>
         </v-card-text>
         <v-card-actions>
-          <ChatSettings :chat="chat" />
+          <ChatSettings :chat="chat" @eventchatupdated="eventChatUpdated" />
 
           <v-btn
             variant="text"
@@ -49,6 +49,10 @@ export default {
   methods: {
     eventChatCreated() {
       console.log("eventChatCreated");
+      this.getChats();
+    },
+    eventChatUpdated() {
+      console.log("eventChatUpdated");
       this.getChats();
     },
     async getChats() {

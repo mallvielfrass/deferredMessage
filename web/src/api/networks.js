@@ -32,6 +32,9 @@ export const getChats = async () => {
     if (response.status != 200) {
       return;
     }
+    if (!body.chats) {
+      return;
+    }
     if (body.chats.length == 0) {
       return;
     }
