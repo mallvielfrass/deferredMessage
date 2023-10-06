@@ -56,6 +56,7 @@ func (n platformApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		}
 		c.JSON(http.StatusOK, gin.H{
 			"platform": platform,
+			"_id":      platform.ID,
 		})
 	})
 	adminGroup.GET("/check", func(c *gin.Context) {
