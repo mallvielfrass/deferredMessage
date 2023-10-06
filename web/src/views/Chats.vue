@@ -6,7 +6,35 @@
     <div v-for="chat in chats" :key="chat._id" class="ms-10 pa-2">
       <v-card max-width="500">
         <v-card-text>
-          <div>{{ chat.networkIdentifier }}</div>
+          <v-row>
+            <v-col cols="1">
+              <v-tooltip>
+                <span v-if="chat.verified">chat verified</span>
+                <span v-if="!chat.verified"
+                  >chat not verified in network. Check in settings</span
+                >
+                <template v-slot:activator="{ props }">
+                  <v-icon
+                    v-if="chat.verified"
+                    v-bind="props"
+                    color="success"
+                    icon="mdi-check-circle"
+                  ></v-icon>
+
+                  <v-icon
+                    v-else
+                    color="error"
+                    v-bind="props"
+                    icon="mdi-close-circle"
+                  ></v-icon>
+                </template>
+              </v-tooltip>
+            </v-col>
+            <v-col cols="4">
+              <div>{{ chat.networkIdentifier }}</div>
+            </v-col>
+          </v-row>
+
           <p class="text-h4 text--primary">{{ chat.name }}</p>
         </v-card-text>
         <v-card-actions>
@@ -16,6 +44,7 @@
             variant="text"
             color="teal-accent-4"
             :to="'/posts?chatid=' + chat._id"
+            :disabled="!chat.verified"
           >
             Posts
           </v-btn>
