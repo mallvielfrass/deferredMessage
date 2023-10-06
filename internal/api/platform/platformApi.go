@@ -39,6 +39,25 @@ func (n platformApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 	})
 	adminGroup := r.Group("/admin")
 	adminGroup.Use(middlewares.CheckAdmin())
+	adminGroup.POST("/create", func(c *gin.Context) {
+		type CreatePlatformRequest struct {
+			Name string `json:"name" binding:"required"`
+		}
+		var request CreatePlatformRequest
+		err := c.ShouldBindJSON(&request)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		platform, err := n.db.Collections.Platform.CreatePlatform(request.Name)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"platform": platform,
+		})
+	})
 	adminGroup.GET("/check", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "admin pong",
