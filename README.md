@@ -12,3 +12,5 @@ service of deferred messages
 - типы соцсетей
 - добавление группы
 - создвние сообщения
+  todo
+  разобраться с platorm id и network identifier
