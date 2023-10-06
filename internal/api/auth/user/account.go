@@ -3,13 +3,13 @@ package user
 import (
 	"deferredMessage/internal/db"
 	"deferredMessage/internal/db/mongo/session"
+	"deferredMessage/internal/middleware"
 	"deferredMessage/internal/utils"
 	"deferredMessage/internal/utils/dto"
 	"fmt"
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -27,45 +27,6 @@ func Init(db db.DB) userApi {
 
 // check auth middleware
 
-func (n userApi) CheckAuth() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		//get token from header
-		token := c.GetHeader("Authorization")
-		if token == "" {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no token"})
-			return
-		}
-		//validate and convert token to primitive.ObjectID
-		sessionID, err := primitive.ObjectIDFromHex(token)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
-			return
-		}
-		fmt.Println(sessionID)
-
-		session, exist, err := n.db.Collections.Session.GetSessionByID(sessionID)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		if !exist {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
-			return
-		}
-
-		c.Set("session", session)
-		if session.Expire < time.Now().Unix() {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "session expired"})
-			return
-		}
-		if !session.Valid {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
-			return
-		}
-		c.Next()
-	}
-}
-
 // @Summary Ping
 // @Description Returns a "pong" message
 // @Accept json
@@ -82,7 +43,8 @@ func ping(c *gin.Context) {
 
 func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 	r := router.Group("/")
-	r.Use(n.CheckAuth())
+	sessionMiddleware := middleware.InitSessionMiddleware(n.db)
+	r.Use(sessionMiddleware.CheckAuth())
 	r.POST("/admin", func(c *gin.Context) {
 		userSession, ok := c.Get("session")
 		if !ok {
@@ -134,7 +96,14 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			"mail": settedUser.Mail, "admin": settedUser.Admin, "id": settedUser.ID}, "isAdmin": isSetAdmin})
 	})
 	r.GET("/ping", ping)
-
+	r.GET("/platforms/list", func(c *gin.Context) {
+		botTypes, err := n.db.Collections.Platform.GetAllPlatforms()
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"botTypes": botTypes})
+	})
 	r.GET("/networks", func(c *gin.Context) {
 		networks, err := n.db.Collections.Network.GetAllNetworks()
 		if err != nil {
