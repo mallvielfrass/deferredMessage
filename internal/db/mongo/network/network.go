@@ -13,9 +13,12 @@ import (
 )
 
 type NetworkScheme struct {
-	ID         string `bson:"_id"`
-	Name       string `bson:"name"`
-	Identifier string `bson:"identifier"`
+	ID         string             `bson:"_id"`
+	Name       string             `bson:"name"`
+	Identifier string             `bson:"identifier"`
+	BotLink    string             `bson:"botLink"`
+	BotType    string             `bson:"botType"`
+	Creator    primitive.ObjectID `bson:"creator"`
 }
 
 type Network struct {
@@ -73,18 +76,29 @@ func (c Network) GetNetworkByIdentifier(identifier string) (NetworkScheme, bool,
 	}
 	return findedNetwork, true, nil
 }
-func (c Network) CreateNetwork(name string, identifier string) (NetworkScheme, error) {
+func (c Network) CreateNetwork(name string, identifier string, botLink string, botType string, creator primitive.ObjectID) (NetworkScheme, error) {
 	id := primitive.NewObjectID()
 	Network := NetworkScheme{
 		ID:         id.Hex(),
 		Name:       name,
 		Identifier: identifier,
+		BotLink:    botLink,
+		BotType:    botType,
+		Creator:    creator,
 	}
 	_, err := c.ct.InsertOne(context.TODO(), Network)
 	if err != nil {
 		return NetworkScheme{}, err
 	}
 	return Network, nil
+}
+func (c Network) UpdateNetwork(networkIdentifier string, data map[string]string) (NetworkScheme, bool, error) {
+	_, err := c.ct.UpdateOne(context.TODO(), bson.M{"identifier": networkIdentifier}, bson.M{"$set": data})
+	if err != nil {
+		return NetworkScheme{}, false, err
+	}
+	network, isExist, err := c.GetNetworkByIdentifier(networkIdentifier)
+	return network, isExist, err
 }
 
 // GetAllNetworks

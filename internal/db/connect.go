@@ -17,7 +17,8 @@ import (
 type Network interface {
 	GetNetworkByID(id primitive.ObjectID) (network.NetworkScheme, bool, error)
 	GetNetworkByIdentifier(identifier string) (network.NetworkScheme, bool, error)
-	CreateNetwork(name string, identifier string) (network.NetworkScheme, error)
+	CreateNetwork(name string, identifier string, botLink string, botType string, creator primitive.ObjectID) (network.NetworkScheme, error)
+	UpdateNetwork(networkIdentifier string, data map[string]string) (network.NetworkScheme, bool, error)
 	GetAllNetworks() ([]network.NetworkScheme, error)
 }
 type Chat interface {

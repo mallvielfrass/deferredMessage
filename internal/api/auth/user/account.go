@@ -154,12 +154,90 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no body"})
 			return
 		}
-		network, err := n.db.Collections.Network.CreateNetwork(body.Name, body.Identifier)
+		userSession, ok := c.Get("session")
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no session"})
+			return
+		}
+		session := userSession.(session.SessionScheme)
+		fmt.Println(session)
+		userID, err := primitive.ObjectIDFromHex(session.UserID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
+			return
+		}
+		network, err := n.db.Collections.Network.CreateNetwork(body.Name, body.Identifier, body.BotLink, body.BotType, userID)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"network": gin.H{"name": network.Name, "identifier": network.Identifier}})
+	})
+	r.PUT("/networks/:networkIdentifier", func(c *gin.Context) {
+		networkIdentifier := c.Param("networkIdentifier")
+
+		var body map[string]interface{}
+		if err := c.ShouldBindJSON(&body); err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
+		}
+		params := make(map[string]string)
+
+		//check name in body
+		if body["name"] != nil {
+			switch body["name"].(type) {
+			case string:
+				params["name"] = body["name"].(string)
+			default:
+				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid name type"})
+				return
+			}
+
+		}
+		if body["botLink"] != nil {
+			switch body["botLink"].(type) {
+			case string:
+				params["botLink"] = body["botLink"].(string)
+			default:
+				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid botLink type"})
+				return
+			}
+		}
+		network, isExist, err := n.db.Collections.Network.GetNetworkByIdentifier(networkIdentifier)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if !isExist {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "network not found"})
+			return
+		}
+		userSession, ok := c.Get("session")
+		if !ok {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no session"})
+			return
+		}
+		session := userSession.(session.SessionScheme)
+		fmt.Println(session)
+		userID, err := primitive.ObjectIDFromHex(session.UserID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
+			return
+		}
+		if userID != network.Creator {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "you are not creator"})
+			return
+		}
+		updatedNetwork, isExist, err := n.db.Collections.Network.UpdateNetwork(networkIdentifier, params)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if !isExist {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "network not found"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"network": gin.H{"name": updatedNetwork.Name, "identifier": updatedNetwork.Identifier, "botLink": updatedNetwork.BotLink}})
 	})
 	userChats := r.Group("/chats")
 	userChats.GET("/", func(c *gin.Context) {
