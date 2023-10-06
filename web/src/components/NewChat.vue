@@ -44,13 +44,13 @@
             <v-row justify="center" align="center">
               <v-col cols="12" md="7">
                 <v-select
-                  ref="socialNetworkSelect"
-                  label="Select network"
-                  v-model="socialNetwork"
+                  ref="socialBotSelect"
+                  label="Select bot"
+                  v-model="socialBot"
                   :required="!selected"
-                  :rules="socialNetworkRules"
-                  @update:modelValue="selectSocialNetwork"
-                  :items="socialNetworkList"
+                  :rules="socialBotRules"
+                  @update:modelValue="selectSocialBot"
+                  :items="socialBotList"
                   :item-props="itemProps"
                 >
                 </v-select>
@@ -76,14 +76,14 @@
   </v-dialog>
 </template>
 <script>
-import { getNetworks, getChats } from "@/api/networks.js";
+import { getBots, getChats } from "@/api/bots.js";
 import { createChat } from "@/api/chats.js";
 export default {
   data() {
     return {
       dialog: false,
-      socialNetwork: {},
-      socialNetworkList: [],
+      socialBot: {},
+      socialBotList: [],
       showChats: false,
       selected: null,
 
@@ -100,12 +100,12 @@ export default {
           return "Name must be greater then 4 and less than 10 characters.";
         },
       ],
-      socialNetworkRules: [
+      socialBotRules: [
         (v) => {
           console.log("V:", v);
           if (!v.identifier) {
             console.log("v req");
-            return "social network is required";
+            return "social bot is required";
           }
           return;
         },
@@ -113,7 +113,7 @@ export default {
     };
   },
   mounted() {
-    this.getSocialNetworkList();
+    this.getSocialBotList();
   },
   methods: {
     async sendForm() {
@@ -121,7 +121,7 @@ export default {
       const checkForm = await this.$refs.newChatForm.validate();
       // console.log("sendForm:", checkForm);
       if (!checkForm.valid) return;
-      const resp = await createChat(this.title, this.socialNetwork.identifier);
+      const resp = await createChat(this.title, this.socialBot.identifier);
       if (resp.error) {
         console.log("error", resp.error);
         this.errors.push(resp.error);
@@ -129,11 +129,11 @@ export default {
       }
       this.dialog = false;
       this.$emit("eventchatcreated");
-      //  this.$refs.socialNetworkSelect.validate();
+      //  this.$refs.socialBotSelect.validate();
     },
 
-    async getSocialNetworkList() {
-      this.socialNetworkList = await getNetworks();
+    async getSocialBotList() {
+      this.socialBotList = await getBots();
     },
     itemProps(item) {
       return {
@@ -141,8 +141,8 @@ export default {
         subtitle: item.identifier,
       };
     },
-    async selectSocialNetwork(network) {
-      console.log("Network selected:", network);
+    async selectSocialBot(bot) {
+      console.log("Bot selected:", bot);
       //  await this.getChatsList();
     },
     closeDialog() {

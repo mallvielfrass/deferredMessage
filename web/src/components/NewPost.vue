@@ -40,10 +40,10 @@
             <v-row justify="center" align="center">
               <v-col cols="12" md="7">
                 <v-select
-                  label="Select network"
-                  v-model="socialNetwork"
-                  @update:modelValue="selectSocialNetwork"
-                  :items="socialNetworkList"
+                  label="Select bot"
+                  v-model="socialBot"
+                  @update:modelValue="selectSocialBot"
+                  :items="socialBotList"
                   :item-props="itemProps"
                 >
                 </v-select>
@@ -69,19 +69,19 @@
   </v-dialog>
 </template>
 <script>
-import { getNetworks, getChats } from "@/api/networks.js";
+import { getBots, getChats } from "@/api/bots.js";
 export default {
   data() {
     return {
       dialog: false,
-      socialNetwork: {},
-      socialNetworkList: [],
+      socialBot: {},
+      socialBotList: [],
       showChats: false,
       chats: [],
     };
   },
   mounted() {
-    this.getSocialNetworkList();
+    this.getSocialBotList();
   },
   methods: {
     async getChatsList() {
@@ -89,8 +89,8 @@ export default {
       console.log(response);
       this.chats = response;
     },
-    async getSocialNetworkList() {
-      this.socialNetworkList = await getNetworks();
+    async getSocialBotList() {
+      this.socialBotList = await getBots();
     },
     itemProps(item) {
       return {
@@ -98,8 +98,8 @@ export default {
         subtitle: item.identifier,
       };
     },
-    async selectSocialNetwork(network) {
-      console.log("Network selected:", network);
+    async selectSocialBot(bot) {
+      console.log("Bot selected:", bot);
       await this.getChatsList();
     },
     closeDialog() {

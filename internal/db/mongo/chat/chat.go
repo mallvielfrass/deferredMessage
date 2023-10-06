@@ -13,14 +13,14 @@ import (
 )
 
 type ChatScheme struct {
-	Name              string             `bson:"name"`
-	ID                primitive.ObjectID `bson:"_id"`
-	LinkOrIdInNetwork string             `bson:"linkOrIdInNetwork"`
-	NetworkIdentifier string             `bson:"networkIdentifier"`
-	NetworkID         string             `bson:"networkID"`
-	Verified          bool               `bson:"verified"`
-	Creator           primitive.ObjectID `bson:"creator"`
-	Hidden            bool               `bson:"hidden"`
+	Name          string             `bson:"name"`
+	ID            primitive.ObjectID `bson:"_id"`
+	LinkOrIdInBot string             `bson:"linkOrIdInBot"`
+	BotIdentifier string             `bson:"botIdentifier"`
+	BotID         string             `bson:"botID"`
+	Verified      bool               `bson:"verified"`
+	Creator       primitive.ObjectID `bson:"creator"`
+	Hidden        bool               `bson:"hidden"`
 }
 
 type Chat struct {
@@ -66,20 +66,20 @@ func (c Chat) UpdateChat(chatId primitive.ObjectID, data map[string]interface{})
 	return err
 }
 
-func (c Chat) CreateChat(name string, networkIdentifier string, networkID string, userID primitive.ObjectID) (ChatScheme, error) {
+func (c Chat) CreateChat(name string, botIdentifier string, botID string, userID primitive.ObjectID) (ChatScheme, error) {
 
 	chat := ChatScheme{
 
-		Name:              name,
-		NetworkIdentifier: networkIdentifier,
-		NetworkID:         networkID,
-		LinkOrIdInNetwork: "",
-		Verified:          false,
-		Creator:           userID,
-		Hidden:            false,
+		Name:          name,
+		BotIdentifier: botIdentifier,
+		BotID:         botID,
+		LinkOrIdInBot: "",
+		Verified:      false,
+		Creator:       userID,
+		Hidden:        false,
 	}
-	res, err := c.ct.InsertOne(context.TODO(), bson.M{"name": chat.Name, "networkIdentifier": chat.NetworkIdentifier, "networkID": chat.NetworkID,
-		"linkOrIdInNetwork": chat.LinkOrIdInNetwork, "verified": chat.Verified, "creator": chat.Creator, "hidden": chat.Hidden})
+	res, err := c.ct.InsertOne(context.TODO(), bson.M{"name": chat.Name, "botIdentifier": chat.BotIdentifier, "botID": chat.BotID,
+		"linkOrIdInBot": chat.LinkOrIdInBot, "verified": chat.Verified, "creator": chat.Creator, "hidden": chat.Hidden})
 	if err != nil {
 		return ChatScheme{}, err
 	}

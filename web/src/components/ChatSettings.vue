@@ -25,8 +25,8 @@
             <v-row justify="center" align="center">
               <v-col cols="12" md="7">
                 <v-text-field
-                  v-model="chatCopy.linkOrIdInNetwork"
-                  label="Link or ID in the network"
+                  v-model="chatCopy.linkOrIdInBot"
+                  label="Link or ID in the bot"
                 ></v-text-field>
               </v-col>
             </v-row>
@@ -50,7 +50,7 @@
   </v-dialog>
 </template>
 <script>
-import { getNetworks, getChats } from "@/api/networks.js";
+import { getBots, getChats } from "@/api/bots.js";
 import { updateChat } from "@/api/chats.js";
 export default {
   props: {
@@ -66,7 +66,7 @@ export default {
     console.log("setting chat:", this.chat._id);
     this.chatCopy = {
       name: this.chat.name,
-      linkOrIdInNetwork: this.chat.linkOrIdInNetwork,
+      linkOrIdInBot: this.chat.linkOrIdInBot,
     };
   },
   methods: {
@@ -75,8 +75,8 @@ export default {
       if (this.chat.name !== this.chatCopy.name) {
         changed.name = this.chatCopy.name;
       }
-      if (this.chat.linkOrIdInNetwork !== this.chatCopy.linkOrIdInNetwork) {
-        changed.linkOrIdInNetwork = this.chatCopy.linkOrIdInNetwork;
+      if (this.chat.linkOrIdInBot !== this.chatCopy.linkOrIdInBot) {
+        changed.linkOrIdInBot = this.chatCopy.linkOrIdInBot;
       }
       return changed;
     },

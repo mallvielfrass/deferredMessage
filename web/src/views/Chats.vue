@@ -11,7 +11,7 @@
               <v-tooltip>
                 <span v-if="chat.verified">chat verified</span>
                 <span v-if="!chat.verified"
-                  >chat not verified in network. Check in settings</span
+                  >chat not verified in bot. Check in settings</span
                 >
                 <template v-slot:activator="{ props }">
                   <v-icon
@@ -31,7 +31,7 @@
               </v-tooltip>
             </v-col>
             <v-col cols="4">
-              <div>{{ chat.networkIdentifier }}</div>
+              <div>{{ chat.botIdentifier }}</div>
             </v-col>
           </v-row>
 
@@ -56,7 +56,7 @@
 <script>
 import NewChat from "@/components/NewChat.vue";
 import ChatSettings from "@/components/ChatSettings.vue";
-import { getChats } from "@/api/networks";
+import { getChats } from "@/api/bots";
 export default {
   components: {
     NewChat,

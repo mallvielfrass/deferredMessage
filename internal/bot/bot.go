@@ -89,10 +89,10 @@ func (b *Bot) Mount() {
 		}
 
 		chat.Verified = true
-		chat.LinkOrIdInNetwork = strconv.FormatInt(c.Chat().ID, 10)
+		chat.LinkOrIdInBot = strconv.FormatInt(c.Chat().ID, 10)
 		paramsMap := map[string]interface{}{
-			"verified":          chat.Verified,
-			"linkOrIdInNetwork": chat.LinkOrIdInNetwork,
+			"verified":      chat.Verified,
+			"linkOrIdInBot": chat.LinkOrIdInBot,
 		}
 		err = b.db.Collections.Chat.UpdateChat(chat.ID, paramsMap)
 		if err != nil {

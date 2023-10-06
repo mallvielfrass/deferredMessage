@@ -2,8 +2,8 @@ package db
 
 import (
 	"context"
+	"deferredMessage/internal/db/mongo/bot"
 	"deferredMessage/internal/db/mongo/chat"
-	"deferredMessage/internal/db/mongo/network"
 	"deferredMessage/internal/db/mongo/platform"
 	"deferredMessage/internal/db/mongo/session"
 	"deferredMessage/internal/db/mongo/user"
@@ -15,17 +15,17 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type Network interface {
-	GetNetworkByID(id primitive.ObjectID) (network.NetworkScheme, bool, error)
-	GetNetworkByIdentifier(identifier string) (network.NetworkScheme, bool, error)
-	CreateNetwork(name string, identifier string, botLink string, botType string, creator primitive.ObjectID) (network.NetworkScheme, error)
-	UpdateNetwork(networkIdentifier string, data map[string]string) (network.NetworkScheme, bool, error)
-	GetAllNetworks() ([]network.NetworkScheme, error)
+type Bot interface {
+	GetBotByID(id primitive.ObjectID) (bot.BotScheme, bool, error)
+	GetBotByIdentifier(identifier string) (bot.BotScheme, bool, error)
+	CreateBot(name string, identifier string, botLink string, botType string, creator primitive.ObjectID) (bot.BotScheme, error)
+	UpdateBot(botIdentifier string, data map[string]string) (bot.BotScheme, bool, error)
+	GetAllBots() ([]bot.BotScheme, error)
 }
 type Chat interface {
 	GetChatByID(id primitive.ObjectID) (chat.ChatScheme, bool, error)
 	UpdateChat(chatId primitive.ObjectID, data map[string]interface{}) error
-	CreateChat(name string, networkIdentifier string, networkID string, userID primitive.ObjectID) (chat.ChatScheme, error)
+	CreateChat(name string, botIdentifier string, botID string, userID primitive.ObjectID) (chat.ChatScheme, error)
 	GetChatsByArrayID(chats []primitive.ObjectID) ([]chat.ChatScheme, error)
 }
 type Platform interface {
@@ -50,7 +50,7 @@ type Collection struct {
 	Chat     Chat
 	User     User
 	Session  Session
-	Network  Network
+	Bot      Bot
 	Platform Platform
 }
 type DB struct {
@@ -89,7 +89,7 @@ func (db *DB) mountSchemes() {
 		Chat:     chat.Init(db.driver),
 		User:     user.Init(db.driver),
 		Session:  session.Init(db.driver),
-		Network:  network.Init(db.driver),
+		Bot:      bot.Init(db.driver),
 		Platform: platform.Init(db.driver),
 	}
 }

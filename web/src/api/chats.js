@@ -1,5 +1,5 @@
 import { getToken } from "@/api/auth";
-export const createChat = async (name, networkIdentifier) => {
+export const createChat = async (name, botIdentifier) => {
   const token = getToken();
   let resp = {
     chat: null,
@@ -13,7 +13,7 @@ export const createChat = async (name, networkIdentifier) => {
     },
     body: JSON.stringify({
       name: name,
-      networkIdentifier: networkIdentifier,
+      botIdentifier: botIdentifier,
     }),
   })
     .then(async (response) => {

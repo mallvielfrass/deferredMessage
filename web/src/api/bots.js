@@ -1,8 +1,8 @@
 import { getToken } from "@/api/auth";
-export const getNetworks = async () => {
-  const networks = [];
+export const getBots = async () => {
+  const bots = [];
   const token = getToken();
-  await fetch("/api/auth/user/networks", {
+  await fetch("/api/auth/user/bots", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -14,9 +14,9 @@ export const getNetworks = async () => {
       return;
     }
 
-    networks.push(...body.networks);
+    bots.push(...body.bots);
   });
-  return networks;
+  return bots;
 };
 export const getChats = async () => {
   const chats = [];

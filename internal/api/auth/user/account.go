@@ -100,21 +100,21 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		}
 		c.JSON(http.StatusOK, gin.H{"botTypes": botTypes})
 	})
-	r.GET("/networks", func(c *gin.Context) {
-		networks, err := n.db.Collections.Network.GetAllNetworks()
+	r.GET("/bots", func(c *gin.Context) {
+		bots, err := n.db.Collections.Bot.GetAllBots()
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		var networksResponse []Network
-		for _, network := range networks {
-			networksResponse = append(networksResponse, Network{Name: network.Name, Identifier: network.Identifier})
+		var botsResponse []Bot
+		for _, bot := range bots {
+			botsResponse = append(botsResponse, Bot{Name: bot.Name, Identifier: bot.Identifier})
 		}
 
-		c.JSON(http.StatusOK, gin.H{"networks": networksResponse})
+		c.JSON(http.StatusOK, gin.H{"bots": botsResponse})
 	})
-	r.POST("/networks", func(c *gin.Context) {
-		body, exist := dto.GetStruct[Network](c, Network{})
+	r.POST("/bots", func(c *gin.Context) {
+		body, exist := dto.GetStruct[Bot](c, Bot{})
 		if !exist {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no body"})
 			return
@@ -126,15 +126,15 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		}
 		session := userSession.(session.SessionScheme)
 
-		network, err := n.db.Collections.Network.CreateNetwork(body.Name, body.Identifier, body.BotLink, body.BotType, session.UserID)
+		bot, err := n.db.Collections.Bot.CreateBot(body.Name, body.Identifier, body.BotLink, body.BotType, session.UserID)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"network": gin.H{"name": network.Name, "identifier": network.Identifier}})
+		c.JSON(http.StatusOK, gin.H{"bot": gin.H{"name": bot.Name, "identifier": bot.Identifier}})
 	})
-	r.PUT("/networks/:networkIdentifier", func(c *gin.Context) {
-		networkIdentifier := c.Param("networkIdentifier")
+	r.PUT("/bots/:botIdentifier", func(c *gin.Context) {
+		botIdentifier := c.Param("botIdentifier")
 
 		var body map[string]interface{}
 		if err := c.ShouldBindJSON(&body); err != nil {
@@ -163,13 +163,13 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 				return
 			}
 		}
-		network, isExist, err := n.db.Collections.Network.GetNetworkByIdentifier(networkIdentifier)
+		bot, isExist, err := n.db.Collections.Bot.GetBotByIdentifier(botIdentifier)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if !isExist {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "network not found"})
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "bot not found"})
 			return
 		}
 		userSession, ok := c.Get("session")
@@ -180,20 +180,20 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		session := userSession.(session.SessionScheme)
 		fmt.Println(session)
 
-		if session.UserID != network.Creator {
+		if session.UserID != bot.Creator {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "you are not creator"})
 			return
 		}
-		updatedNetwork, isExist, err := n.db.Collections.Network.UpdateNetwork(networkIdentifier, params)
+		updatedBot, isExist, err := n.db.Collections.Bot.UpdateBot(botIdentifier, params)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if !isExist {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "network not found"})
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "bot not found"})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"network": gin.H{"name": updatedNetwork.Name, "identifier": updatedNetwork.Identifier, "botLink": updatedNetwork.BotLink}})
+		c.JSON(http.StatusOK, gin.H{"bot": gin.H{"name": updatedBot.Name, "identifier": updatedBot.Identifier, "botLink": updatedBot.BotLink}})
 	})
 	userChats := r.Group("/chats")
 	userChats.GET("/", func(c *gin.Context) {
@@ -253,12 +253,12 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		var respArray []Chat
 		for _, chat := range chats {
 			respArray = append(respArray, Chat{
-				ID:                chat.ID.Hex(),
-				Name:              chat.Name,
-				NetworkIdentifier: chat.NetworkIdentifier,
-				NetworkID:         chat.NetworkID,
-				LinkOrIdInNetwork: chat.LinkOrIdInNetwork,
-				Verified:          chat.Verified,
+				ID:            chat.ID.Hex(),
+				Name:          chat.Name,
+				BotIdentifier: chat.BotIdentifier,
+				BotID:         chat.BotID,
+				LinkOrIdInBot: chat.LinkOrIdInBot,
+				Verified:      chat.Verified,
 			})
 		}
 		c.JSON(http.StatusOK, gin.H{"chats": respArray, "offset": offset, "count": count})
@@ -269,14 +269,14 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no body"})
 			return
 		}
-		network, isExist, err := n.db.Collections.Network.GetNetworkByIdentifier(body.NetworkIdentifier)
+		bot, isExist, err := n.db.Collections.Bot.GetBotByIdentifier(body.BotIdentifier)
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		if !isExist {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "network not found"})
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "bot not found"})
 			return
 		}
 		userSession, ok := c.Get("session")
@@ -287,7 +287,7 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		session := userSession.(session.SessionScheme)
 		fmt.Println(session)
 
-		createdChat, err := n.db.Collections.Chat.CreateChat(body.Name, network.Identifier, network.ID, session.UserID)
+		createdChat, err := n.db.Collections.Chat.CreateChat(body.Name, bot.Identifier, bot.ID, session.UserID)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -304,7 +304,7 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			return
 		}
 
-		c.JSON(http.StatusOK, gin.H{"chat": gin.H{"linker": linker, "id": createdChat.ID, "name": createdChat.Name, "networkIdentifier": createdChat.NetworkIdentifier, "networkId": createdChat.NetworkID, "verified": createdChat.Verified}})
+		c.JSON(http.StatusOK, gin.H{"chat": gin.H{"linker": linker, "id": createdChat.ID, "name": createdChat.Name, "botIdentifier": createdChat.BotIdentifier, "botId": createdChat.BotID, "verified": createdChat.Verified}})
 	})
 	userChats.PUT("/:id", func(c *gin.Context) {
 		var body map[string]interface{}
@@ -321,11 +321,11 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			}
 
 		}
-		//linkOrIdInNetwork
-		if body["linkOrIdInNetwork"] != nil {
-			switch body["linkOrIdInNetwork"].(type) {
+		//linkOrIdInBot
+		if body["linkOrIdInBot"] != nil {
+			switch body["linkOrIdInBot"].(type) {
 			case string:
-				params["linkOrIdInNetwork"] = body["linkOrIdInNetwork"].(string)
+				params["linkOrIdInBot"] = body["linkOrIdInBot"].(string)
 			}
 		}
 		//fmt.Println(params)
