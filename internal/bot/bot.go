@@ -90,7 +90,11 @@ func (b *Bot) Mount() {
 
 		chat.Verified = true
 		chat.LinkOrIdInNetwork = strconv.FormatInt(c.Chat().ID, 10)
-		err = b.db.Collections.Chat.UpdateChat(chat)
+		paramsMap := map[string]interface{}{
+			"verified":          chat.Verified,
+			"linkOrIdInNetwork": chat.LinkOrIdInNetwork,
+		}
+		err = b.db.Collections.Chat.UpdateChat(chat.ID, paramsMap)
 		if err != nil {
 			fmt.Println("/link: ERR:", err)
 			return c.Reply("Server error")

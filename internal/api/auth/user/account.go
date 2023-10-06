@@ -364,7 +364,7 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 
 		}
-		params := make(map[string]string)
+		params := make(map[string]interface{})
 		//check name in body
 		if body["name"] != nil {
 			switch body["name"].(type) {
@@ -380,7 +380,7 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 				params["linkOrIdInNetwork"] = body["linkOrIdInNetwork"].(string)
 			}
 		}
-		fmt.Println(params)
+		//fmt.Println(params)
 
 		//user
 		userSession, ok := c.Get("session")
@@ -396,7 +396,7 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			return
 		}
 		chatId := c.Param("id")
-		fmt.Printf("chatId: %v\n", chatId)
+		//	fmt.Printf("chatId: %v\n", chatId)
 		chatObjectID, err := primitive.ObjectIDFromHex(chatId)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid chat id"})

@@ -60,7 +60,8 @@ func (c Chat) GetChatByID(id primitive.ObjectID) (ChatScheme, bool, error) {
 	}
 	return findedChat, true, nil
 }
-func (c Chat) UpdateChat(chatId primitive.ObjectID, data map[string]string) error {
+func (c Chat) UpdateChat(chatId primitive.ObjectID, data map[string]interface{}) error {
+
 	_, err := c.ct.UpdateOne(context.TODO(), bson.M{"_id": chatId}, bson.M{"$set": data})
 	return err
 }
