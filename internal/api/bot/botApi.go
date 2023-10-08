@@ -48,8 +48,21 @@ func (n botApi) HandleGetBotsList(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"bots": botsResponse})
 }
+
+// HandleCreateBot creates a new bot.
+
+// @Summary Create a new bot
+// @Description Create a new bot with the provided information
+// @Tags Bot
+// @Accept json
+// @Produce json
+// @Param botRequest body BotRequest true "Bot request body"
+// @Security ApiKeyAuth
+// @Success 200 {object} BotStructResponse "Bot created successfully"
+// @Failure 400 {object} ErrorResponse "error"
+// @Router /api/bot/ [post]
 func (n botApi) HandleCreateBot(c *gin.Context) {
-	body, exist := dto.GetStruct[BotResponse](c, BotResponse{})
+	body, exist := dto.GetStruct[BotRequest](c, BotRequest{})
 	if !exist {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "required params not found"})
 		return

@@ -1,4 +1,46 @@
 definitions:
+  bot.BotRequest:
+    properties:
+      botLink:
+        type: string
+      name:
+        type: string
+      platform:
+        type: string
+      token:
+        type: string
+    required:
+    - name
+    - platform
+    type: object
+  bot.BotResponse:
+    properties:
+      _id:
+        type: string
+      botLink:
+        type: string
+      creator:
+        type: string
+      name:
+        type: string
+      platform:
+        type: string
+      token:
+        type: string
+    required:
+    - name
+    - platform
+    type: object
+  bot.BotStructResponse:
+    properties:
+      bot:
+        $ref: '#/definitions/bot.BotResponse'
+    type: object
+  bot.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
   user.MessageResponse:
     properties:
       message:
@@ -25,6 +67,34 @@ paths:
       summary: Ping
       tags:
       - user
+  /api/bot/:
+    post:
+      consumes:
+      - application/json
+      description: Create a new bot with the provided information
+      parameters:
+      - description: Bot request body
+        in: body
+        name: botRequest
+        required: true
+        schema:
+          $ref: '#/definitions/bot.BotRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bot created successfully
+          schema:
+            $ref: '#/definitions/bot.BotStructResponse'
+        "400":
+          description: error
+          schema:
+            $ref: '#/definitions/bot.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new bot
+      tags:
+      - Bot
   /tapi/example/helloworld:
     get:
       consumes:

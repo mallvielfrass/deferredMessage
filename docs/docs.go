@@ -43,6 +43,51 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/bot/": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Create a new bot with the provided information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bot"
+                ],
+                "summary": "Create a new bot",
+                "parameters": [
+                    {
+                        "description": "Bot request body",
+                        "name": "botRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/bot.BotRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bot created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/bot.BotStructResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "error",
+                        "schema": {
+                            "$ref": "#/definitions/bot.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/tapi/example/helloworld": {
             "get": {
                 "description": "do ping",
@@ -68,6 +113,70 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "bot.BotRequest": {
+            "type": "object",
+            "required": [
+                "name",
+                "platform"
+            ],
+            "properties": {
+                "botLink": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "bot.BotResponse": {
+            "type": "object",
+            "required": [
+                "name",
+                "platform"
+            ],
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "botLink": {
+                    "type": "string"
+                },
+                "creator": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "bot.BotStructResponse": {
+            "type": "object",
+            "properties": {
+                "bot": {
+                    "$ref": "#/definitions/bot.BotResponse"
+                }
+            }
+        },
+        "bot.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
         "user.MessageResponse": {
             "type": "object",
             "properties": {

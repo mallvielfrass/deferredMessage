@@ -19,3 +19,17 @@ type BotResponse struct {
 	Platform string `json:"platform"  binding:"required"`
 	Token    string `json:"token"`
 }
+type BotRequest struct {
+	Name string `json:"name" binding:"required"`
+
+	BotLink string `json:"botLink"`
+
+	Platform string `json:"platform"  binding:"required"`
+	Token    string `json:"token"`
+}
+type BotStructResponse struct {
+	Bot BotResponse `json:"bot"`
+}
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
