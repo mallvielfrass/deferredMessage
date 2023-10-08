@@ -30,6 +30,15 @@ type BotRequest struct {
 type BotStructResponse struct {
 	Bot BotResponse `json:"bot"`
 }
+type BotStructArrayResponse struct {
+	Bots []BotResponse `json:"bots"`
+}
 type ErrorResponse struct {
-	Error string `json:"error" `
+	Error  string `json:"error" `
+	Reason string `json:"reason"`
+}
+type BotUpdateRequest struct {
+	Name     string `json:"name"  `
+	Platform string `json:"platform"  `
+	Token    string `json:"token"  `
 }

@@ -31,14 +31,32 @@ definitions:
     - name
     - platform
     type: object
+  bot.BotStructArrayResponse:
+    properties:
+      bots:
+        items:
+          $ref: '#/definitions/bot.BotResponse'
+        type: array
+    type: object
   bot.BotStructResponse:
     properties:
       bot:
         $ref: '#/definitions/bot.BotResponse'
     type: object
+  bot.BotUpdateRequest:
+    properties:
+      name:
+        type: string
+      platform:
+        type: string
+      token:
+        type: string
+    type: object
   bot.ErrorResponse:
     properties:
       error:
+        type: string
+      reason:
         type: string
     type: object
   user.MessageResponse:
@@ -95,8 +113,69 @@ paths:
           schema:
             $ref: '#/definitions/bot.ErrorResponse'
       security:
-      - ApiKeyAuth: []
+      - Bearer: []
       summary: Create a new bot
+      tags:
+      - Bot
+  /api/bot/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Update an existing bot with the provided information
+      parameters:
+      - description: Bot ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Bot request body
+        in: body
+        name: botRequest
+        required: true
+        schema:
+          $ref: '#/definitions/bot.BotUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Bot updated successfully
+          schema:
+            $ref: '#/definitions/bot.BotStructResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/bot.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/bot.ErrorResponse'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/bot.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Update an existing bot
+      tags:
+      - Bot
+  /bot:
+    get:
+      description: Retrieves a list of all bots for user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of bots retrieved successfully
+          schema:
+            $ref: '#/definitions/bot.BotStructArrayResponse'
+        "400":
+          description: Error getting bots
+          schema:
+            $ref: '#/definitions/bot.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get a list of all bots
       tags:
       - Bot
   /tapi/example/helloworld:

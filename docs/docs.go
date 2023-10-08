@@ -47,7 +47,7 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "ApiKeyAuth": []
+                        "Bearer": []
                     }
                 ],
                 "description": "Create a new bot with the provided information",
@@ -87,6 +87,102 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/bot.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/bot/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Update an existing bot with the provided information",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bot"
+                ],
+                "summary": "Update an existing bot",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "format": "uuid",
+                        "description": "Bot ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Bot request body",
+                        "name": "botRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/bot.BotUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Bot updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/bot.BotStructResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/bot.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/bot.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/bot.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/bot": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Retrieves a list of all bots for user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bot"
+                ],
+                "summary": "Get a list of all bots",
+                "responses": {
+                    "200": {
+                        "description": "List of bots retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/bot.BotStructArrayResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Error getting bots",
                         "schema": {
                             "$ref": "#/definitions/bot.ErrorResponse"
                         }
@@ -167,6 +263,17 @@ const docTemplate = `{
                 }
             }
         },
+        "bot.BotStructArrayResponse": {
+            "type": "object",
+            "properties": {
+                "bots": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/bot.BotResponse"
+                    }
+                }
+            }
+        },
         "bot.BotStructResponse": {
             "type": "object",
             "properties": {
@@ -175,10 +282,27 @@ const docTemplate = `{
                 }
             }
         },
+        "bot.BotUpdateRequest": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "platform": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
         "bot.ErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
+                    "type": "string"
+                },
+                "reason": {
                     "type": "string"
                 }
             }
