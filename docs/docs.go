@@ -80,7 +80,13 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "error",
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/bot.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/bot.ErrorResponse"
                         }

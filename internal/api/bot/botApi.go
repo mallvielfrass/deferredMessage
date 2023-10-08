@@ -59,12 +59,14 @@ func (n botApi) HandleGetBotsList(c *gin.Context) {
 // @Param botRequest body BotRequest true "Bot request body"
 // @Security ApiKeyAuth
 // @Success 200 {object} BotStructResponse "Bot created successfully"
-// @Failure 400 {object} ErrorResponse "error"
+// @Failure 404 {object} ErrorResponse
+// @Failure 400 {object} ErrorResponse
 // @Router /api/bot/ [post]
 func (n botApi) HandleCreateBot(c *gin.Context) {
 	body, exist := dto.GetStruct[BotRequest](c, BotRequest{})
 	if !exist {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "required params not found"})
+		c.AbortWithStatusJSON(http.StatusNotFound, ErrorResponse{
+			Error: "required params not found"})
 		return
 	}
 	userSession, ok := c.Get("session")
