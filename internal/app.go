@@ -4,6 +4,7 @@ import (
 	"deferredMessage/config"
 	_ "deferredMessage/docs"
 	"deferredMessage/internal/api/auth/user"
+	"deferredMessage/internal/api/bot"
 	"deferredMessage/internal/api/noauth"
 	"deferredMessage/internal/api/platform"
 	"deferredMessage/internal/db"
@@ -72,6 +73,7 @@ func InitRouter(db db.DB) *gin.Engine {
 	noauth.Init(db).Router(r.Group("/nauth"))
 	user.Init(db).Router(r.Group("/auth/user"))
 	platform.Init(db).Router(r.Group("/platform"))
+	bot.Init(db).Router(r.Group("/bot"))
 	return router
 }
 func (app DefferedMessageApp) Run() error {
