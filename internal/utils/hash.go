@@ -6,6 +6,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/base64"
+	"errors"
 	"fmt"
 
 	"golang.org/x/crypto/bcrypt"
@@ -120,4 +121,41 @@ func GenerateString(length int) string {
 		panic(err)
 	}
 	return fmt.Sprintf("%x", b)
+}
+
+func HashTokenFromMap(data *map[string]interface{}) error {
+	token, isExist := (*data)["token"].(string)
+	if !isExist {
+		return errors.New("token not found")
+	}
+	hashedToken, err := HashPassword(token)
+	if err != nil {
+		return err
+	}
+	(*data)["hashedToken"] = hashedToken
+	return nil
+}
+func ObfuscateToken(token string) string {
+	runedToken := []rune(token)
+	obfuscatedToken := ""
+	if len(runedToken) < 5 {
+		for i := 0; i < len(runedToken); i++ {
+			obfuscatedToken += "x"
+		}
+		return obfuscatedToken
+	}
+
+	firstPartToken := runedToken[:4]
+	secondPartToken := runedToken[4:]
+
+	for _, val := range firstPartToken {
+		obfuscatedToken += string(val)
+	}
+
+	for i := 0; i < len(secondPartToken); i++ {
+		obfuscatedToken += "x"
+	}
+
+	return obfuscatedToken
+
 }
