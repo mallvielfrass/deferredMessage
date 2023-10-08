@@ -64,19 +64,8 @@ func (c Bot) GetBotByID(id primitive.ObjectID) (BotScheme, bool, error) {
 //		return err
 //	}
 //
-// GetBotByIdentifier
-func (c Bot) GetBotByIdentifier(identifier string) (BotScheme, bool, error) {
-	var findedBot BotScheme
-	err := c.ct.FindOne(context.TODO(), bson.M{"identifier": identifier}).Decode(&findedBot)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return BotScheme{}, false, nil
-		}
-		return BotScheme{}, false, err
-	}
-	return findedBot, true, nil
-}
-func (c Bot) CreateBot(name string, identifier string, botLink string, creator primitive.ObjectID, platform string) (BotScheme, error) {
+
+func (c Bot) CreateBot(name string, botLink string, creator primitive.ObjectID, platform string) (BotScheme, error) {
 
 	bot := BotScheme{
 		Name:    name,
@@ -99,12 +88,12 @@ func (c Bot) CreateBot(name string, identifier string, botLink string, creator p
 	fmt.Printf("bot: %+v\n", bot)
 	return bot, nil
 }
-func (c Bot) UpdateBot(botIdentifier string, data map[string]string) (BotScheme, bool, error) {
-	_, err := c.ct.UpdateOne(context.TODO(), bson.M{"identifier": botIdentifier}, bson.M{"$set": data})
+func (c Bot) UpdateBot(botId primitive.ObjectID, data map[string]interface{}) (BotScheme, bool, error) {
+	_, err := c.ct.UpdateOne(context.TODO(), bson.M{"_id": botId}, bson.M{"$set": data})
 	if err != nil {
 		return BotScheme{}, false, err
 	}
-	bot, isExist, err := c.GetBotByIdentifier(botIdentifier)
+	bot, isExist, err := c.GetBotByID(botId)
 	return bot, isExist, err
 }
 

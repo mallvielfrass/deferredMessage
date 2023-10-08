@@ -68,3 +68,16 @@ func (c Platform) CreatePlatform(name string) (PlatformScheme, error) {
 		ID:   res.InsertedID.(primitive.ObjectID),
 	}, nil
 }
+
+// GetPlatformByName(name string) (platform.PlatformScheme, bool, error)
+func (c Platform) GetPlatformByName(name string) (PlatformScheme, bool, error) {
+	var findedPlatform PlatformScheme
+	err := c.ct.FindOne(context.TODO(), bson.M{"name": name}).Decode(&findedPlatform)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return PlatformScheme{}, false, nil
+		}
+		return PlatformScheme{}, false, err
+	}
+	return findedPlatform, true, nil
+}

@@ -17,9 +17,9 @@ import (
 
 type Bot interface {
 	GetBotByID(id primitive.ObjectID) (bot.BotScheme, bool, error)
-	GetBotByIdentifier(identifier string) (bot.BotScheme, bool, error)
-	CreateBot(name string, identifier string, botLink string, creator primitive.ObjectID, platform string) (bot.BotScheme, error)
-	UpdateBot(botIdentifier string, data map[string]string) (bot.BotScheme, bool, error)
+
+	CreateBot(name string, botLink string, creator primitive.ObjectID, platform string) (bot.BotScheme, error)
+	UpdateBot(botId primitive.ObjectID, data map[string]interface{}) (bot.BotScheme, bool, error)
 	GetAllBots() ([]bot.BotScheme, error)
 }
 type Chat interface {
@@ -33,6 +33,7 @@ type Platform interface {
 	CreatePlatform(name string) (platform.PlatformScheme, error)
 	// UpdatePlatform(platformIdentifier string, data map[string]string) (platform.PlatformScheme, bool, error)
 	GetAllPlatforms() ([]platform.PlatformScheme, error)
+	GetPlatformByName(name string) (platform.PlatformScheme, bool, error)
 }
 type User interface {
 	CheckUserByMail(mailOrUsername string) (bool, error)
