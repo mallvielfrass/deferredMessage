@@ -46,6 +46,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      "/swagger": {
+        target: "http://127.0.0.1:9092",
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 });
