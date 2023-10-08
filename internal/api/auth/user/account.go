@@ -4,7 +4,6 @@ import (
 	"deferredMessage/internal/db"
 	"deferredMessage/internal/db/mongo/session"
 	"deferredMessage/internal/middleware"
-	"deferredMessage/internal/utils"
 	"deferredMessage/internal/utils/dto"
 	"fmt"
 	"net/http"
@@ -100,101 +99,101 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		}
 		c.JSON(http.StatusOK, gin.H{"botTypes": botTypes})
 	})
-	r.GET("/bots", func(c *gin.Context) {
-		bots, err := n.db.Collections.Bot.GetAllBots()
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		var botsResponse []Bot
-		for _, bot := range bots {
-			botsResponse = append(botsResponse, Bot{Name: bot.Name, Identifier: bot.Identifier})
-		}
+	// r.GET("/bots", func(c *gin.Context) {
+	// 	bots, err := n.db.Collections.Bot.GetAllBots()
+	// 	if err != nil {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 		return
+	// 	}
+	// 	botsResponse := []Bot{}
+	// 	for _, bot := range bots {
+	// 		botsResponse = append(botsResponse, Bot{Name: bot.Name, Identifier: bot.Identifier})
+	// 	}
 
-		c.JSON(http.StatusOK, gin.H{"bots": botsResponse})
-	})
-	r.POST("/bots", func(c *gin.Context) {
-		body, exist := dto.GetStruct[Bot](c, Bot{})
-		if !exist {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no body"})
-			return
-		}
-		userSession, ok := c.Get("session")
-		if !ok {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no session"})
-			return
-		}
-		session := userSession.(session.SessionScheme)
+	// 	c.JSON(http.StatusOK, gin.H{"bots": botsResponse})
+	// })
+	// r.POST("/bots", func(c *gin.Context) {
+	// 	body, exist := dto.GetStruct[Bot](c, Bot{})
+	// 	if !exist {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no body"})
+	// 		return
+	// 	}
+	// 	userSession, ok := c.Get("session")
+	// 	if !ok {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no session"})
+	// 		return
+	// 	}
+	// 	session := userSession.(session.SessionScheme)
 
-		bot, err := n.db.Collections.Bot.CreateBot(body.Name, body.Identifier, body.BotLink, body.BotType, session.UserID)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{"bot": gin.H{"name": bot.Name, "identifier": bot.Identifier}})
-	})
-	r.PUT("/bots/:botIdentifier", func(c *gin.Context) {
-		botIdentifier := c.Param("botIdentifier")
+	// 	bot, err := n.db.Collections.Bot.CreateBot(body.Name, body.Identifier, body.BotLink, body.BotType, session.UserID)
+	// 	if err != nil {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 		return
+	// 	}
+	// 	c.JSON(http.StatusOK, gin.H{"bot": gin.H{"name": bot.Name, "identifier": bot.Identifier}})
+	// })
+	// r.PUT("/bots/:botIdentifier", func(c *gin.Context) {
+	// 	botIdentifier := c.Param("botIdentifier")
 
-		var body map[string]interface{}
-		if err := c.ShouldBindJSON(&body); err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 	var body map[string]interface{}
+	// 	if err := c.ShouldBindJSON(&body); err != nil {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 
-		}
-		params := make(map[string]string)
+	// 	}
+	// 	params := make(map[string]string)
 
-		//check name in body
-		if body["name"] != nil {
-			switch body["name"].(type) {
-			case string:
-				params["name"] = body["name"].(string)
-			default:
-				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid name type"})
-				return
-			}
+	// 	//check name in body
+	// 	if body["name"] != nil {
+	// 		switch body["name"].(type) {
+	// 		case string:
+	// 			params["name"] = body["name"].(string)
+	// 		default:
+	// 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid name type"})
+	// 			return
+	// 		}
 
-		}
-		if body["botLink"] != nil {
-			switch body["botLink"].(type) {
-			case string:
-				params["botLink"] = body["botLink"].(string)
-			default:
-				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid botLink type"})
-				return
-			}
-		}
-		bot, isExist, err := n.db.Collections.Bot.GetBotByIdentifier(botIdentifier)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		if !isExist {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "bot not found"})
-			return
-		}
-		userSession, ok := c.Get("session")
-		if !ok {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no session"})
-			return
-		}
-		session := userSession.(session.SessionScheme)
-		fmt.Println(session)
+	// 	}
+	// 	if body["botLink"] != nil {
+	// 		switch body["botLink"].(type) {
+	// 		case string:
+	// 			params["botLink"] = body["botLink"].(string)
+	// 		default:
+	// 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid botLink type"})
+	// 			return
+	// 		}
+	// 	}
+	// 	bot, isExist, err := n.db.Collections.Bot.GetBotByIdentifier(botIdentifier)
+	// 	if err != nil {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 		return
+	// 	}
+	// 	if !isExist {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "bot not found"})
+	// 		return
+	// 	}
+	// 	userSession, ok := c.Get("session")
+	// 	if !ok {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no session"})
+	// 		return
+	// 	}
+	// 	session := userSession.(session.SessionScheme)
+	// 	fmt.Println(session)
 
-		if session.UserID != bot.Creator {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "you are not creator"})
-			return
-		}
-		updatedBot, isExist, err := n.db.Collections.Bot.UpdateBot(botIdentifier, params)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		if !isExist {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "bot not found"})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{"bot": gin.H{"name": updatedBot.Name, "identifier": updatedBot.Identifier, "botLink": updatedBot.BotLink}})
-	})
+	// 	if session.UserID != bot.Creator {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "you are not creator"})
+	// 		return
+	// 	}
+	// 	updatedBot, isExist, err := n.db.Collections.Bot.UpdateBot(botIdentifier, params)
+	// 	if err != nil {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 		return
+	// 	}
+	// 	if !isExist {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "bot not found"})
+	// 		return
+	// 	}
+	// 	c.JSON(http.StatusOK, gin.H{"bot": gin.H{"name": updatedBot.Name, "identifier": updatedBot.Identifier, "botLink": updatedBot.BotLink}})
+	// })
 	userChats := r.Group("/chats")
 	userChats.GET("/", func(c *gin.Context) {
 		userSession, ok := c.Get("session")
@@ -263,49 +262,49 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		}
 		c.JSON(http.StatusOK, gin.H{"chats": respArray, "offset": offset, "count": count})
 	})
-	userChats.POST("/", func(c *gin.Context) {
-		body, exist := dto.GetStruct[Chat](c, Chat{})
-		if !exist {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no body"})
-			return
-		}
-		bot, isExist, err := n.db.Collections.Bot.GetBotByIdentifier(body.BotIdentifier)
+	// userChats.POST("/", func(c *gin.Context) {
+	// 	body, exist := dto.GetStruct[Chat](c, Chat{})
+	// 	if !exist {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no body"})
+	// 		return
+	// 	}
+	// 	bot, isExist, err := n.db.Collections.Bot.GetBotByIdentifier(body.BotIdentifier)
 
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		if !isExist {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "bot not found"})
-			return
-		}
-		userSession, ok := c.Get("session")
-		if !ok {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no session"})
-			return
-		}
-		session := userSession.(session.SessionScheme)
-		fmt.Println(session)
+	// 	if err != nil {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 		return
+	// 	}
+	// 	if !isExist {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "bot not found"})
+	// 		return
+	// 	}
+	// 	userSession, ok := c.Get("session")
+	// 	if !ok {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no session"})
+	// 		return
+	// 	}
+	// 	session := userSession.(session.SessionScheme)
+	// 	fmt.Println(session)
 
-		createdChat, err := n.db.Collections.Chat.CreateChat(body.Name, bot.Identifier, bot.ID, session.UserID)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+	// 	createdChat, err := n.db.Collections.Chat.CreateChat(body.Name, bot.Id , bot.ID, session.UserID)
+	// 	if err != nil {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 		return
+	// 	}
 
-		err = n.db.Collections.User.AddChatToUser(createdChat.ID, session.UserID)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		linker, err := utils.Encrypt(createdChat.ID.Hex())
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+	// 	err = n.db.Collections.User.AddChatToUser(createdChat.ID, session.UserID)
+	// 	if err != nil {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 		return
+	// 	}
+	// 	linker, err := utils.Encrypt(createdChat.ID.Hex())
+	// 	if err != nil {
+	// 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	// 		return
+	// 	}
 
-		c.JSON(http.StatusOK, gin.H{"chat": gin.H{"linker": linker, "id": createdChat.ID, "name": createdChat.Name, "botIdentifier": createdChat.BotIdentifier, "botId": createdChat.BotID, "verified": createdChat.Verified}})
-	})
+	// 	c.JSON(http.StatusOK, gin.H{"chat": gin.H{"linker": linker, "id": createdChat.ID, "name": createdChat.Name, "botIdentifier": createdChat.BotIdentifier, "botId": createdChat.BotID, "verified": createdChat.Verified}})
+	// })
 	userChats.PUT("/:id", func(c *gin.Context) {
 		var body map[string]interface{}
 		if err := c.ShouldBindJSON(&body); err != nil {
