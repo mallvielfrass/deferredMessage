@@ -58,15 +58,30 @@ func (n botApi) HandleCreateBot(c *gin.Context) {
 		return
 	}
 	session := userSession.(session.SessionScheme)
-
-	bot, err := n.db.Collections.Bot.CreateBot(body.Name, body.Id, body.BotLink, session.UserID, body.Platform)
+	_, isExit, err := n.db.Collections.Platform.GetPlatformByName(body.Platform)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"bot": gin.H{"name": bot.Name,
-		"_id": bot.ID.Hex(), "botLink": bot.BotLink,
-		"creator": bot.Creator.Hex(), "platform": bot.Platform}})
+	if !isExit {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "platform not found"})
+		return
+	}
+
+	bot, err := n.db.Collections.Bot.CreateBot(body.Name, body.BotLink, session.UserID, body.Platform)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp := BotResponse{
+		Name:     bot.Name,
+		Id:       bot.ID.Hex(),
+		BotLink:  bot.BotLink,
+		Platform: bot.Platform,
+		Creator:  bot.Creator.Hex(),
+	}
+
+	c.JSON(http.StatusOK, gin.H{"bot": resp})
 }
 func (n botApi) UpdateBot(c *gin.Context) {
 	botId := c.Param("id")
@@ -103,14 +118,35 @@ func (n botApi) UpdateBot(c *gin.Context) {
 		Name     string `json:"name" validate:"required"`
 		Platform string `json:"platform" validate:"required"`
 	}
-
-	body, err := reqvalidator.ValidateFlatMap(c, &BodyValidate{}, reqvalidator.GetTagsFromFlatStruct(BodyValidate{}))
+	var reqBody BodyValidate
+	body, err := reqvalidator.ValidateFlatMap(c, &reqBody, reqvalidator.GetTagsFromFlatStruct(BodyValidate{}))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	_, isExit, err := n.db.Collections.Platform.GetPlatformByName(reqBody.Platform)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if !isExit {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "platform not found"})
+		return
+	}
+	botUpdated, _, err := n.db.Collections.Bot.UpdateBot(botObjectId, body)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	resp := BotResponse{
+		Name:     botUpdated.Name,
+		Id:       botUpdated.ID.Hex(),
+		BotLink:  botUpdated.BotLink,
+		Platform: botUpdated.Platform,
+		Creator:  botUpdated.Creator.Hex(),
+	}
 
-	c.JSON(http.StatusOK, gin.H{"bot": body})
+	c.JSON(http.StatusOK, gin.H{"bot": resp})
 }
 func (n botApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 	r := router.Group("/")
