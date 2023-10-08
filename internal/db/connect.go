@@ -18,7 +18,7 @@ import (
 type Bot interface {
 	GetBotByID(id primitive.ObjectID) (bot.BotScheme, bool, error)
 
-	CreateBot(name string, botLink string, creator primitive.ObjectID, platform string) (bot.BotScheme, error)
+	CreateBot(name string, botLink string, creator primitive.ObjectID, platform string, hashedToken string) (bot.BotScheme, error)
 	UpdateBot(botId primitive.ObjectID, data map[string]interface{}) (bot.BotScheme, bool, error)
 	GetAllBots() ([]bot.BotScheme, error)
 }

@@ -17,4 +17,5 @@ type BotResponse struct {
 	BotLink  string `json:"botLink"`
 	Creator  string `json:"creator"`
 	Platform string `json:"platform"  binding:"required"`
+	Token    string `json:"token"`
 }

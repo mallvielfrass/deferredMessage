@@ -4,8 +4,10 @@ import (
 	"deferredMessage/internal/db"
 	"deferredMessage/internal/db/mongo/session"
 	"deferredMessage/internal/middleware"
+	"deferredMessage/internal/utils"
 	"deferredMessage/internal/utils/dto"
 	reqvalidator "deferredMessage/internal/utils/reqValidator"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -67,18 +69,26 @@ func (n botApi) HandleCreateBot(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "platform not found"})
 		return
 	}
-
-	bot, err := n.db.Collections.Bot.CreateBot(body.Name, body.BotLink, session.UserID, body.Platform)
+	hashToken, err := utils.Encrypt(body.Token)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	bot, err := n.db.Collections.Bot.CreateBot(body.Name, body.BotLink, session.UserID, body.Platform, hashToken)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	obfuscatedToken := utils.ObfuscateToken(body.Token)
+
 	resp := BotResponse{
 		Name:     bot.Name,
 		Id:       bot.ID.Hex(),
 		BotLink:  bot.BotLink,
 		Platform: bot.Platform,
 		Creator:  bot.Creator.Hex(),
+		Token:    obfuscatedToken,
 	}
 
 	c.JSON(http.StatusOK, gin.H{"bot": resp})
@@ -115,8 +125,9 @@ func (n botApi) UpdateBot(c *gin.Context) {
 	}
 
 	type BodyValidate struct {
-		Name     string `json:"name" validate:"required"`
-		Platform string `json:"platform" validate:"required"`
+		Name     string `json:"name"  `
+		Platform string `json:"platform"  `
+		Token    string `json:"token"  `
 	}
 	var reqBody BodyValidate
 	body, err := reqvalidator.ValidateFlatMap(c, &reqBody, reqvalidator.GetTagsFromFlatStruct(BodyValidate{}))
@@ -126,6 +137,7 @@ func (n botApi) UpdateBot(c *gin.Context) {
 	}
 	_, isExit, err := n.db.Collections.Platform.GetPlatformByName(reqBody.Platform)
 	if err != nil {
+		fmt.Printf("get platform err: %+v\n", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -133,17 +145,28 @@ func (n botApi) UpdateBot(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "platform not found"})
 		return
 	}
+	utils.HashTokenFromMap(&body)
+	fmt.Printf("body: %+v\n", body)
 	botUpdated, _, err := n.db.Collections.Bot.UpdateBot(botObjectId, body)
 	if err != nil {
+		fmt.Printf("update err: %+v\n", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	decryptToken, err := utils.Decrypt(botUpdated.HashedToken)
+	if err != nil {
+		fmt.Printf("decrypt err: %+v\n", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	obfuscatedToken := utils.ObfuscateToken(decryptToken)
 	resp := BotResponse{
 		Name:     botUpdated.Name,
 		Id:       botUpdated.ID.Hex(),
 		BotLink:  botUpdated.BotLink,
 		Platform: botUpdated.Platform,
 		Creator:  botUpdated.Creator.Hex(),
+		Token:    obfuscatedToken,
 	}
 
 	c.JSON(http.StatusOK, gin.H{"bot": resp})

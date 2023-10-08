@@ -13,12 +13,13 @@ import (
 )
 
 type BotScheme struct {
-	ID       primitive.ObjectID `bson:"_id"`
-	Name     string             `bson:"name"`
-	BotLink  string             `bson:"botLink"`
-	BotType  string             `bson:"botType"`
-	Creator  primitive.ObjectID `bson:"creator"`
-	Platform string             `bson:"platform"`
+	ID          primitive.ObjectID `bson:"_id"`
+	Name        string             `bson:"name"`
+	BotLink     string             `bson:"botLink"`
+	BotType     string             `bson:"botType"`
+	Creator     primitive.ObjectID `bson:"creator"`
+	Platform    string             `bson:"platform"`
+	HashedToken string             `bson:"hashedToken"`
 }
 
 type Bot struct {
@@ -65,27 +66,28 @@ func (c Bot) GetBotByID(id primitive.ObjectID) (BotScheme, bool, error) {
 //	}
 //
 
-func (c Bot) CreateBot(name string, botLink string, creator primitive.ObjectID, platform string) (BotScheme, error) {
+func (c Bot) CreateBot(name string, botLink string, creator primitive.ObjectID, platform string, hashedToken string) (BotScheme, error) {
 
 	bot := BotScheme{
-		Name:    name,
-		BotLink: botLink,
-
-		Creator:  creator,
-		Platform: platform,
+		Name:        name,
+		BotLink:     botLink,
+		Creator:     creator,
+		Platform:    platform,
+		HashedToken: hashedToken,
 	}
 	res, err := c.ct.InsertOne(context.TODO(), bson.M{
-		"name":     name,
-		"botLink":  botLink,
-		"creator":  creator,
-		"platform": platform,
+		"name":        name,
+		"botLink":     botLink,
+		"creator":     creator,
+		"platform":    platform,
+		"hashedToken": hashedToken,
 	})
 	if err != nil {
 		return BotScheme{}, err
 	}
 
 	bot.ID = res.InsertedID.(primitive.ObjectID)
-	fmt.Printf("bot: %+v\n", bot)
+	//fmt.Printf("bot: %+v\n", bot)
 	return bot, nil
 }
 func (c Bot) UpdateBot(botId primitive.ObjectID, data map[string]interface{}) (BotScheme, bool, error) {
