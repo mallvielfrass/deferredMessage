@@ -18,6 +18,7 @@ export default {
         },
 
         { name: "chats", url: "/chats" },
+        { name: "bots", url: "/bots" },
         { name: "account", url: "/account" },
       ],
     };

@@ -13,7 +13,12 @@ export const getBots = async () => {
     if (response.status != 200) {
       return;
     }
-
+    if (!body.bots) {
+      return;
+    }
+    if (body.bots.length == 0) {
+      return;
+    }
     bots.push(...body.bots);
   });
   return bots;

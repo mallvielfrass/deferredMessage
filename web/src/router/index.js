@@ -35,6 +35,11 @@ const routes = [
         name: "Chats",
         component: () => import("@/views/Chats.vue"),
       },
+      {
+        path: "/bots",
+        name: "Bots",
+        component: () => import("@/views/Bots.vue"),
+      },
     ],
   },
 ];
