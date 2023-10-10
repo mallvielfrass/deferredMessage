@@ -2,6 +2,7 @@ package noauth
 
 import (
 	"deferredMessage/internal/db"
+	"deferredMessage/internal/models"
 	"deferredMessage/internal/utils"
 	"deferredMessage/internal/utils/dto"
 	"fmt"
@@ -15,24 +16,48 @@ type NoAuth struct {
 	db db.DB
 }
 
-type RegisterBody struct {
-	// json tag to de-serialize json body
-	Name     string `json:"name" binding:"required"`
-	Mail     string `json:"mail" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-type LoginBody struct {
-	// json tag to de-serialize json body
-
-	Mail     string `json:"mail" binding:"required"`
-	Password string `json:"password" binding:"required"`
-}
-
 func Init(db db.DB) NoAuth {
 	return NoAuth{
 		db: db,
 	}
 }
+
+// HandleCheckUserExist checks if a user already exists.
+//
+// @Summary Check if a user already exists
+// @Description Checks if a user with the provided email already exists
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param user body RegisterBody true "User details"
+// @Success 200 {object} StatusResponse{Status: string} "User does not exist"
+// @Failure 400 {object} models.ErrorResponse "Bad request"
+// @Failure 202 {object} models.ErrorResponse "User already exists"
+// @Router /api/noauth/check [post]
+func (n NoAuth) HandleCheckUserExist(c *gin.Context) {
+	var body RegisterBody
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error:  "no body",
+			Reason: err.Error(),
+		})
+		return
+	}
+
+	isExist, err := n.db.Collections.User.CheckUserByMail(body.Mail)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: err.Error()})
+		return
+	}
+	if isExist {
+		c.JSON(http.StatusAccepted, models.ErrorResponse{
+			Error: "user already exist"})
+		return
+	}
+	c.JSON(http.StatusOK, StatusResponse{Status: "not exist"})
+}
+
 func (n NoAuth) Router(router *gin.RouterGroup) *gin.RouterGroup {
 	r := router.Group("/")
 	r.POST("/check", func(c *gin.Context) {
@@ -51,7 +76,7 @@ func (n NoAuth) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "user already exist"})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"status": "not exist"})
+		c.JSON(http.StatusOK, StatusResponse{Status: "not exist"})
 	})
 
 	r.POST("/register", func(c *gin.Context) {
