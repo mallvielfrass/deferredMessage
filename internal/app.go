@@ -5,7 +5,6 @@ import (
 	_ "deferredMessage/docs"
 	"deferredMessage/internal/handler"
 	"deferredMessage/internal/repository"
-	db "deferredMessage/internal/repository"
 	"deferredMessage/internal/service"
 )
 
@@ -26,7 +25,7 @@ func NewApp(confPath string) (DefferedMessageApp, error) {
 }
 
 func (app DefferedMessageApp) Run() error {
-	db, err := db.ConnectDB(app.Config.DBHost, app.Config.DBName)
+	db, err := repository.ConnectDB(app.Config.DBHost, app.Config.DBName)
 	if err != nil {
 		return err
 	}
