@@ -8,9 +8,7 @@ type Chat struct {
 	LinkOrIdInBot string `json:"linkOrIdInBot"`
 	Verified      bool   `json:"verified"`
 }
-type EncryptedData struct {
-	Token string `json:"token"`
-}
+
 type Bot struct {
 	Name       string `json:"name"`
 	Identifier string `json:"identifier"`
