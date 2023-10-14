@@ -2,12 +2,11 @@ package bot
 
 import (
 	"deferredMessage/internal/db"
-	"deferredMessage/internal/db/mongo/session"
-	"deferredMessage/internal/middleware"
 	"deferredMessage/internal/models"
 	"deferredMessage/internal/utils"
 	"deferredMessage/internal/utils/dto"
 	reqvalidator "deferredMessage/internal/utils/reqValidator"
+	sessionutils "deferredMessage/internal/utils/sessionUtils"
 	"fmt"
 	"net/http"
 
@@ -83,16 +82,12 @@ func (n botApi) HandleCreateBot(c *gin.Context) {
 			Error: "required params not found"})
 		return
 	}
-	userSession, ok := c.Get("session")
-	if !ok {
-
-		c.AbortWithStatusJSON(http.StatusNotFound,
-			models.ErrorResponse{
-				Error: "session not found",
-			})
+	session, err := sessionutils.GetSession(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: err.Error()})
 		return
 	}
-	session := userSession.(session.SessionScheme)
 	_, isExit, err := n.db.Collections.Platform.GetPlatformByName(body.Platform)
 	if err != nil {
 		fmt.Printf("HandleCreateBot> err: %v\n", err)
@@ -158,10 +153,10 @@ func (n botApi) UpdateBot(c *gin.Context) {
 			Error: "invalid id"})
 		return
 	}
-	userSession, ok := c.Get("session")
-	if !ok {
+	session, err := sessionutils.GetSession(c)
+	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
-			Error: "no session"})
+			Error: err.Error()})
 		return
 	}
 	botObjectId, err := primitive.ObjectIDFromHex(botId)
@@ -170,7 +165,7 @@ func (n botApi) UpdateBot(c *gin.Context) {
 			Error: "invalid id"})
 		return
 	}
-	session := userSession.(session.SessionScheme)
+
 	bot, isExist, err := n.db.Collections.Bot.GetBotByID(botObjectId)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, models.ErrorResponse{
@@ -238,8 +233,7 @@ func (n botApi) UpdateBot(c *gin.Context) {
 }
 func (n botApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 	r := router.Group("/")
-	sessionMiddleware := middleware.InitMiddleware(n.db)
-	r.Use(sessionMiddleware.CheckAuth())
+
 	r.GET("/ping", ping)
 
 	r.GET("/", n.HandleGetBotsList)
