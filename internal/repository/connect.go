@@ -2,11 +2,11 @@ package db
 
 import (
 	"context"
-	"deferredMessage/internal/db/mongo/bot"
-	"deferredMessage/internal/db/mongo/chat"
-	"deferredMessage/internal/db/mongo/platform"
-	"deferredMessage/internal/db/mongo/session"
-	"deferredMessage/internal/db/mongo/user"
+	"deferredMessage/internal/repository/mongo/bot"
+	"deferredMessage/internal/repository/mongo/chat"
+	"deferredMessage/internal/repository/mongo/platform"
+	"deferredMessage/internal/repository/mongo/session"
+	"deferredMessage/internal/repository/mongo/user"
 	"fmt"
 	"log"
 

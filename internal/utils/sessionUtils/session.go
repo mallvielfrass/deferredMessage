@@ -1,7 +1,7 @@
 package sessionutils
 
 import (
-	"deferredMessage/internal/db/mongo/session"
+	"deferredMessage/internal/repository/mongo/session"
 	"fmt"
 
 	"github.com/gin-gonic/gin"

@@ -1,8 +1,8 @@
 package bot
 
 import (
-	"deferredMessage/internal/db"
 	"deferredMessage/internal/models"
+	db "deferredMessage/internal/repository"
 	"deferredMessage/internal/utils"
 	"deferredMessage/internal/utils/dto"
 	reqvalidator "deferredMessage/internal/utils/reqValidator"

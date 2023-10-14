@@ -1,8 +1,8 @@
 package noauth
 
 import (
-	"deferredMessage/internal/db"
 	"deferredMessage/internal/models"
+	db "deferredMessage/internal/repository"
 	"deferredMessage/internal/utils"
 	"deferredMessage/internal/utils/dto"
 	"fmt"

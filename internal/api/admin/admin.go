@@ -1,7 +1,8 @@
 package admin
 
 import (
-	"deferredMessage/internal/db"
+	db "deferredMessage/internal/repository"
+
 	"deferredMessage/internal/models"
 	"deferredMessage/internal/utils/dto"
 	sessionutils "deferredMessage/internal/utils/sessionUtils"

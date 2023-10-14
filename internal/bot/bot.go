@@ -1,7 +1,7 @@
 package bot
 
 import (
-	"deferredMessage/internal/db"
+	db "deferredMessage/internal/repository"
 	"deferredMessage/internal/utils"
 	"fmt"
 	"strconv"

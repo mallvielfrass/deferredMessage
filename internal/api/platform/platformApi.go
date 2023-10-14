@@ -1,7 +1,8 @@
 package platform
 
 import (
-	"deferredMessage/internal/db"
+	db "deferredMessage/internal/repository"
+
 	"deferredMessage/internal/middleware"
 	"net/http"
 

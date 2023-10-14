@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"deferredMessage/internal/db"
-	"deferredMessage/internal/db/mongo/session"
+	db "deferredMessage/internal/repository"
+	"deferredMessage/internal/repository/mongo/session"
 	"fmt"
 	"net/http"
 	"time"
