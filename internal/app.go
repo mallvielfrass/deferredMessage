@@ -3,11 +3,13 @@ package internal
 import (
 	"deferredMessage/config"
 	_ "deferredMessage/docs"
+	"deferredMessage/internal/api/admin"
 	"deferredMessage/internal/api/auth/user"
 	"deferredMessage/internal/api/bot"
 	"deferredMessage/internal/api/noauth"
 	"deferredMessage/internal/api/platform"
 	"deferredMessage/internal/db"
+	"deferredMessage/internal/middleware"
 
 	"net/http"
 
@@ -70,10 +72,16 @@ func InitRouter(db db.DB) *gin.Engine {
 	})
 	///static files
 	router.Static("/static", "./internal/static")
+
+	sessionMiddleware := middleware.InitMiddleware(db)
+	authUserApi := r.Group("/auth")
+	authUserApi.Use(sessionMiddleware.CheckAuth())
+
 	noauth.Init(db).Router(r.Group("/nauth"))
-	user.Init(db).Router(r.Group("/auth/user"))
-	platform.Init(db).Router(r.Group("/platform"))
-	bot.Init(db).Router(r.Group("/bot"))
+	user.Init(db).Router(authUserApi.Group("/user"))
+	platform.Init(db).Router(authUserApi.Group("/platform"))
+	bot.Init(db).Router(authUserApi.Group("/bot"))
+	admin.Init(db).Router(authUserApi.Group("/admin"))
 	return router
 }
 func (app DefferedMessageApp) Run() error {
