@@ -32,3 +32,13 @@ func (s *sessionService) CheckSession(token string) (models.SessionScheme, error
 	}
 	return session, nil
 }
+
+// CreateSession(UserID string, expire int64, ip string) (models.SessionScheme, error)
+func (s *sessionService) CreateSession(UserID string, expire int64, ip string) (models.SessionScheme, error) {
+	return s.repos.Session.CreateSession(UserID, expire, ip)
+}
+
+// GetUserByMail(mail string) (models.UserScheme, bool, error)
+func (s *sessionService) GetUserByMail(mail string) (models.UserScheme, bool, error) {
+	return s.repos.User.GetUserByMail(mail)
+}

@@ -1,8 +1,9 @@
 package noauth
 
 import (
+	"deferredMessage/internal/middleware"
 	"deferredMessage/internal/models"
-	db "deferredMessage/internal/repository"
+	"deferredMessage/internal/service"
 	"deferredMessage/internal/utils"
 	"deferredMessage/internal/utils/dto"
 	"fmt"
@@ -13,12 +14,14 @@ import (
 )
 
 type NoAuth struct {
-	db db.DB
+	services   *service.Service
+	middleware *middleware.Middleware
 }
 
-func Init(db db.DB) NoAuth {
+func Init(services *service.Service, middleware *middleware.Middleware) NoAuth {
 	return NoAuth{
-		db: db,
+		services:   services,
+		middleware: middleware,
 	}
 }
 
@@ -44,7 +47,7 @@ func (n NoAuth) HandleCheckUserExist(c *gin.Context) {
 		return
 	}
 
-	isExist, err := n.db.Collections.User.CheckUserByMail(body.Mail)
+	isExist, err := n.services.UserService.CheckUserByMail(body.Mail)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
 			Error: err.Error()})
@@ -67,7 +70,7 @@ func (n NoAuth) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no body"})
 			return
 		}
-		isExist, err := n.db.Collections.User.CheckUserByMail(body.Mail)
+		isExist, err := n.services.UserService.CheckUserByMail(body.Mail)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -87,7 +90,7 @@ func (n NoAuth) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			return
 		}
 
-		isExist, err := n.db.Collections.User.CheckUserByMail(body.Mail)
+		isExist, err := n.services.UserService.CheckUserByMail(body.Mail)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -101,13 +104,13 @@ func (n NoAuth) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		user, err := n.db.Collections.User.CreateUser(body.Name, body.Mail, hash)
+		user, err := n.services.UserService.CreateUser(body.Name, body.Mail, hash)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 		userIP := c.ClientIP()
-		session, err := n.db.Collections.Session.CreateSession(user.ID, time.Now().Add(time.Hour*24*31).Unix(), userIP)
+		session, err := n.services.SessionService.CreateSession(user.ID, time.Now().Add(time.Hour*24*31).Unix(), userIP)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -122,7 +125,7 @@ func (n NoAuth) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			return
 		}
 
-		user, isExist, err := n.db.Collections.User.GetUserByMail(body.Mail)
+		user, isExist, err := n.services.UserService.GetUserByMail(body.Mail)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "user or password incorrect"})
 			fmt.Println("/login error: ", err.Error())
@@ -137,7 +140,7 @@ func (n NoAuth) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			return
 		}
 		userIP := c.ClientIP()
-		session, err := n.db.Collections.Session.CreateSession(user.ID, time.Now().Add(time.Hour*24*31).Unix(), userIP)
+		session, err := n.services.SessionService.CreateSession(user.ID, time.Now().Add(time.Hour*24*31).Unix(), userIP)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return

@@ -1,7 +1,8 @@
 package user
 
 import (
-	db "deferredMessage/internal/repository"
+	"deferredMessage/internal/middleware"
+	"deferredMessage/internal/service"
 	sessionutils "deferredMessage/internal/utils/sessionUtils"
 	"net/http"
 	"strconv"
@@ -10,12 +11,14 @@ import (
 )
 
 type userApi struct {
-	db db.DB
+	services   *service.Service
+	middleware *middleware.Middleware
 }
 
-func Init(db db.DB) userApi {
+func Init(services *service.Service, middleware *middleware.Middleware) userApi {
 	return userApi{
-		db: db,
+		services:   services,
+		middleware: middleware,
 	}
 }
 
@@ -40,7 +43,7 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 
 	r.GET("/ping", ping)
 	r.GET("/platforms/list", func(c *gin.Context) {
-		botTypes, err := n.db.Collections.Platform.GetAllPlatforms()
+		botTypes, err := n.services.PlatformService.GetAllPlatforms()
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -57,7 +60,7 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			return
 		}
 
-		user, exist, err := n.db.Collections.User.GetUserByID(session.UserID)
+		user, exist, err := n.services.UserService.GetUserByID(session.UserID)
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -95,7 +98,7 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			c.JSON(http.StatusOK, gin.H{"chats": []gin.H{}})
 			return
 		}
-		chats, err := n.db.Collections.Chat.GetChatsByArrayID(chatsId)
+		chats, err := n.services.ChatService.GetChatsByArrayID(chatsId)
 
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -191,7 +194,7 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		chatId := c.Param("id")
 		//	fmt.Printf("chatId: %v\n", chatId)
 
-		chat, exist, err := n.db.Collections.Chat.GetChatByID(chatId)
+		chat, exist, err := n.services.ChatService.GetChatByID(chatId)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -204,7 +207,7 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "you are not creator"})
 			return
 		}
-		err = n.db.Collections.Chat.UpdateChat(chatId, params)
+		err = n.services.ChatService.UpdateChat(chatId, params)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return

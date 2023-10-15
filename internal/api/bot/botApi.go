@@ -1,8 +1,9 @@
 package bot
 
 import (
+	"deferredMessage/internal/middleware"
 	"deferredMessage/internal/models"
-	db "deferredMessage/internal/repository"
+	"deferredMessage/internal/service"
 	"deferredMessage/internal/utils"
 	"deferredMessage/internal/utils/dto"
 	reqvalidator "deferredMessage/internal/utils/reqValidator"
@@ -14,12 +15,14 @@ import (
 )
 
 type botApi struct {
-	db db.DB
+	services   *service.Service
+	middleware *middleware.Middleware
 }
 
-func Init(db db.DB) botApi {
+func Init(services *service.Service, middleware *middleware.Middleware) botApi {
 	return botApi{
-		db: db,
+		services:   services,
+		middleware: middleware,
 	}
 }
 func ping(c *gin.Context) {
@@ -39,7 +42,7 @@ func ping(c *gin.Context) {
 // @Failure 400 {object} models.ErrorResponse "Error getting bots"
 // @Router /bot [get]
 func (n botApi) HandleGetBotsList(c *gin.Context) {
-	bots, err := n.db.Collections.Bot.GetAllBots()
+	bots, err := n.services.BotService.GetAllBots()
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
 			Error:  "Error getting bots",
@@ -87,7 +90,7 @@ func (n botApi) HandleCreateBot(c *gin.Context) {
 			Error: err.Error()})
 		return
 	}
-	_, isExit, err := n.db.Collections.Platform.GetPlatformByName(body.Platform)
+	_, isExit, err := n.services.PlatformService.GetPlatformByName(body.Platform)
 	if err != nil {
 		fmt.Printf("HandleCreateBot> err: %v\n", err)
 		c.AbortWithStatusJSON(http.StatusNotFound, models.ErrorResponse{
@@ -108,7 +111,7 @@ func (n botApi) HandleCreateBot(c *gin.Context) {
 		})
 		return
 	}
-	bot, err := n.db.Collections.Bot.CreateBot(body.Name, body.BotLink, session.UserID, body.Platform, hashToken)
+	bot, err := n.services.BotService.CreateBot(body.Name, body.BotLink, session.UserID, body.Platform, hashToken)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
 			Error:  "bot creation failed",
@@ -159,7 +162,7 @@ func (n botApi) UpdateBot(c *gin.Context) {
 		return
 	}
 
-	bot, isExist, err := n.db.Collections.Bot.GetBotByID(botId)
+	bot, isExist, err := n.services.BotService.GetBotByID(botId)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, models.ErrorResponse{
 			Error: err.Error()})
@@ -184,7 +187,7 @@ func (n botApi) UpdateBot(c *gin.Context) {
 			Reason: err.Error()})
 		return
 	}
-	_, isExit, err := n.db.Collections.Platform.GetPlatformByName(reqBody.Platform)
+	_, isExit, err := n.services.PlatformService.GetPlatformByName(reqBody.Platform)
 	if err != nil {
 		fmt.Printf("get platform err: %+v\n", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
@@ -198,7 +201,7 @@ func (n botApi) UpdateBot(c *gin.Context) {
 	}
 	utils.HashTokenFromMap(&body)
 	//fmt.Printf("body: %+v\n", body)
-	botUpdated, _, err := n.db.Collections.Bot.UpdateBot(botId, body)
+	botUpdated, _, err := n.services.BotService.UpdateBot(botId, body)
 	if err != nil {
 		fmt.Printf("update err: %+v\n", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{

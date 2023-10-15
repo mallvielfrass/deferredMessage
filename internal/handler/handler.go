@@ -68,11 +68,11 @@ func (h *Handler) newRouter() *gin.Engine {
 	authUserApi := r.Group("/auth")
 	authUserApi.Use(h.middleware.CheckAuth())
 
-	noauth.Init(db).Router(r.Group("/nauth"))
-	user.Init(db).Router(authUserApi.Group("/user"))
-	platform.Init(db).Router(authUserApi.Group("/platform"))
-	bot.Init(db).Router(authUserApi.Group("/bot"))
-	admin.Init(db).Router(authUserApi.Group("/admin"))
+	noauth.Init(h.services, h.middleware).Router(r.Group("/nauth"))
+	user.Init(h.services, h.middleware).Router(authUserApi.Group("/user"))
+	platform.Init(h.services, h.middleware).Router(authUserApi.Group("/platform"))
+	bot.Init(h.services, h.middleware).Router(authUserApi.Group("/bot"))
+	admin.Init(h.services, h.middleware).Router(authUserApi.Group("/admin"))
 	return router
 }
 func (h *Handler) Run(port string) error {

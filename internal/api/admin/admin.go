@@ -1,9 +1,9 @@
 package admin
 
 import (
-	db "deferredMessage/internal/repository"
-
+	"deferredMessage/internal/middleware"
 	"deferredMessage/internal/models"
+	"deferredMessage/internal/service"
 	"deferredMessage/internal/utils/dto"
 	sessionutils "deferredMessage/internal/utils/sessionUtils"
 	"deferredMessage/internal/utils/token"
@@ -13,12 +13,14 @@ import (
 )
 
 type Admin struct {
-	db db.DB
+	services   *service.Service
+	middleware *middleware.Middleware
 }
 
-func Init(db db.DB) Admin {
+func Init(services *service.Service, middleware *middleware.Middleware) Admin {
 	return Admin{
-		db: db,
+		services:   services,
+		middleware: middleware,
 	}
 }
 
@@ -41,7 +43,7 @@ func (a Admin) HandleSetAdmin(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{Error: err.Error()})
 		return
 	}
-	settedUser, isSetAdmin, err := a.db.Collections.User.SetUserAdmin(session.UserID)
+	settedUser, isSetAdmin, err := a.services.UserService.SetUserAdmin(session.UserID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{Error: err.Error()})
 		return

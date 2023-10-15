@@ -1,29 +1,30 @@
 package platform
 
 import (
-	db "deferredMessage/internal/repository"
-
 	"deferredMessage/internal/middleware"
+	"deferredMessage/internal/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 type platformApi struct {
-	db db.DB
+	services   *service.Service
+	middleware *middleware.Middleware
 }
 
-func Init(db db.DB) platformApi {
+func Init(services *service.Service, middleware *middleware.Middleware) platformApi {
 	return platformApi{
-		db: db,
+		services:   services,
+		middleware: middleware,
 	}
 }
 func (n platformApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 	r := router.Group("/")
-	middlewares := middleware.InitMiddleware(n.db)
+	middlewares := middleware.InitMiddleware(n.services)
 	//r.Use(middlewares.CheckAuth())
 	r.GET("/list", func(c *gin.Context) {
-		platformsBson, err := n.db.Collections.Platform.GetAllPlatforms()
+		platformsBson, err := n.services.PlatformService.GetAllPlatforms()
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		}
@@ -41,16 +42,13 @@ func (n platformApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 	adminGroup := r.Group("/admin")
 	adminGroup.Use(middlewares.CheckAdmin())
 	adminGroup.POST("/create", func(c *gin.Context) {
-		type CreatePlatformRequest struct {
-			Name string `json:"name" binding:"required"`
-		}
 		var request CreatePlatformRequest
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		platform, err := n.db.Collections.Platform.CreatePlatform(request.Name)
+		platform, err := n.services.PlatformService.CreatePlatform(request.Name)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
