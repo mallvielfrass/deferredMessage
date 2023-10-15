@@ -2,6 +2,7 @@ package platform
 
 import (
 	"deferredMessage/internal/middleware"
+	"deferredMessage/internal/models"
 	"deferredMessage/internal/service"
 	"net/http"
 
@@ -26,7 +27,8 @@ func (n platformApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 	r.GET("/", func(c *gin.Context) {
 		platformsBson, err := n.services.PlatformService.GetAllPlatforms()
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: err.Error()})
 		}
 		var platforms []PlatformResponse
 		for _, platform := range platformsBson {
@@ -45,12 +47,14 @@ func (n platformApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		var request CreatePlatformRequest
 		err := c.ShouldBindJSON(&request)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: err.Error()})
 			return
 		}
 		platform, err := n.services.PlatformService.CreatePlatform(request.Name)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: err.Error()})
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{

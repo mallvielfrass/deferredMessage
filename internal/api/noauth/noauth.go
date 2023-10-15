@@ -67,16 +67,19 @@ func (n NoAuth) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		//fmt.Println("register")
 		body, exist := dto.GetStruct[RegisterBody](c, RegisterBody{})
 		if !exist {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no body"})
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: "no body"})
 			return
 		}
 		isExist, err := n.services.UserService.CheckUserByMail(body.Mail)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: err.Error()})
 			return
 		}
 		if isExist {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "user already exist"})
+			c.JSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: "user already exist"})
 			return
 		}
 		c.JSON(http.StatusOK, StatusResponse{Status: "not exist"})
@@ -86,33 +89,39 @@ func (n NoAuth) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		//fmt.Println("register")
 		body, exist := dto.GetStruct[RegisterBody](c, RegisterBody{})
 		if !exist {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no body"})
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: "no body"})
 			return
 		}
 
 		isExist, err := n.services.UserService.CheckUserByMail(body.Mail)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: err.Error()})
 			return
 		}
 		if isExist {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "user already exist"})
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: "user already exist"})
 			return
 		}
 		hash, err := utils.HashPassword(body.Password)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: err.Error()})
 			return
 		}
 		user, err := n.services.UserService.CreateUser(body.Name, body.Mail, hash)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: err.Error()})
 			return
 		}
 		userIP := c.ClientIP()
 		session, err := n.services.SessionService.CreateSession(user.ID, time.Now().Add(time.Hour*24*31).Unix(), userIP)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: err.Error()})
 			return
 		}
 
@@ -121,28 +130,33 @@ func (n NoAuth) Router(router *gin.RouterGroup) *gin.RouterGroup {
 	r.POST("/login", func(c *gin.Context) {
 		body, exist := dto.GetStruct[LoginBody](c, LoginBody{})
 		if !exist {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no body"})
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: "no body"})
 			return
 		}
 
 		user, isExist, err := n.services.UserService.GetUserByMail(body.Mail)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "user or password incorrect"})
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: "user or password incorrect"})
 			fmt.Println("/login error: ", err.Error())
 			return
 		}
 		if !isExist {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "user or password incorrect"})
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: "user or password incorrect"})
 			return
 		}
 		if !utils.CheckPasswordHash(body.Password, user.Hash) {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "user or password incorrect"})
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: "user or password incorrect"})
 			return
 		}
 		userIP := c.ClientIP()
 		session, err := n.services.SessionService.CreateSession(user.ID, time.Now().Add(time.Hour*24*31).Unix(), userIP)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: err.Error()})
 			return
 		}
 		c.JSON(http.StatusOK, gin.H{"status": "success", "session": gin.H{"id": session.ID, "expire": session.Expire}})

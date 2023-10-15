@@ -2,6 +2,7 @@ package chat
 
 import (
 	"deferredMessage/internal/middleware"
+	"deferredMessage/internal/models"
 	"deferredMessage/internal/service"
 	"deferredMessage/internal/utils"
 	"deferredMessage/internal/utils/dto"
@@ -28,39 +29,46 @@ func Init(services *service.Service, middleware *middleware.Middleware) chatApi 
 func (n chatApi) HandleCreateChat(c *gin.Context) {
 	body, exist := dto.GetStruct[Chat](c, Chat{})
 	if !exist {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no body"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: "no body"})
 		return
 	}
 	bot, isExist, err := n.services.BotService.GetBotByID(body.BotID)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: err.Error()})
 		return
 	}
 	if !isExist {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "bot not found"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: "bot not found"})
 		return
 	}
 	session, err := sessionutils.GetSession(c)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: err.Error()})
 		return
 	}
 
 	createdChat, err := n.services.ChatService.CreateChat(body.Name, bot.ID, bot.ID, session.UserID)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: err.Error()})
 		return
 	}
 
 	err = n.services.UserService.AddChatToUser(createdChat.ID, session.UserID)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: err.Error()})
 		return
 	}
 	linker, err := utils.Encrypt(createdChat.ID)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: err.Error()})
 		return
 	}
 
@@ -72,18 +80,21 @@ func (n chatApi) HandleCreateChat(c *gin.Context) {
 func (n chatApi) HandleGetChatsList(c *gin.Context) {
 	session, err := sessionutils.GetSession(c)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: err.Error()})
 		return
 	}
 
 	user, exist, err := n.services.UserService.GetUserByID(session.UserID)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: err.Error()})
 		return
 	}
 	if !exist {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "user not found"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: "user not found"})
 		return
 	}
 	//get from url query params [count, offset]
@@ -91,12 +102,14 @@ func (n chatApi) HandleGetChatsList(c *gin.Context) {
 	offsetString := c.DefaultQuery("offset", "0")
 	count, err := strconv.Atoi(countString)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: err.Error()})
 		return
 	}
 	offset, err := strconv.Atoi(offsetString)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: err.Error()})
 		return
 	}
 	diff := len(user.Chats) - offset
@@ -117,7 +130,8 @@ func (n chatApi) HandleGetChatsList(c *gin.Context) {
 	chats, err := n.services.ChatService.GetChatsByArrayID(chatsId)
 
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: err.Error()})
 		return
 	}
 
@@ -139,7 +153,8 @@ func (n chatApi) HandleGetChatsList(c *gin.Context) {
 func (n chatApi) HandleUpdateChatSettings(c *gin.Context) {
 	var body map[string]interface{}
 	if err := c.ShouldBindJSON(&body); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: err.Error()})
 
 	}
 	params := make(map[string]interface{})
@@ -162,7 +177,8 @@ func (n chatApi) HandleUpdateChatSettings(c *gin.Context) {
 
 	session, err := sessionutils.GetSession(c)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: err.Error()})
 		return
 	}
 
@@ -171,20 +187,24 @@ func (n chatApi) HandleUpdateChatSettings(c *gin.Context) {
 
 	chat, exist, err := n.services.ChatService.GetChatByID(chatId)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: err.Error()})
 		return
 	}
 	if !exist {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "chat not found"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: "chat not found"})
 		return
 	}
 	if chat.Creator != session.UserID {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "you are not creator"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: "you are not creator"})
 		return
 	}
 	err = n.services.ChatService.UpdateChat(chatId, params)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
