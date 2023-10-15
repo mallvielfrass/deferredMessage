@@ -7,7 +7,7 @@ type UserResponse struct {
 	Name  string `json:"name"`
 	Mail  string `json:"mail"`
 	Admin bool   `json:"admin"`
-	ID    string `json:"id"`
+	ID    string `json:"_id"`
 }
 type AdminResponse struct {
 	User    UserResponse `json:"user"`
