@@ -6,14 +6,11 @@ definitions:
       user:
         $ref: '#/definitions/admin.UserResponse'
     type: object
-<<<<<<< HEAD
-=======
   admin.EncryptedData:
     properties:
       token:
         type: string
     type: object
->>>>>>> f9b0aa5 (add swagger api for admin)
   admin.UserResponse:
     properties:
       _id:
@@ -156,8 +153,6 @@ paths:
       consumes:
       - application/json
       description: Sets the authenticated user as an admin.
-<<<<<<< HEAD
-=======
       parameters:
       - description: Encrypted data
         in: body
@@ -165,7 +160,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/admin.EncryptedData'
->>>>>>> f9b0aa5 (add swagger api for admin)
       produces:
       - application/json
       responses:

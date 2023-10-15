@@ -33,8 +33,6 @@ const docTemplate = `{
                     "Admin"
                 ],
                 "summary": "Set a user as admin",
-<<<<<<< HEAD
-=======
                 "parameters": [
                     {
                         "description": "Encrypted data",
@@ -46,7 +44,6 @@ const docTemplate = `{
                         }
                     }
                 ],
->>>>>>> f9b0aa5 (add swagger api for admin)
                 "responses": {
                     "200": {
                         "description": "Admin status set successfully",
@@ -400,8 +397,6 @@ const docTemplate = `{
                 }
             }
         },
-<<<<<<< HEAD
-=======
         "admin.EncryptedData": {
             "type": "object",
             "properties": {
@@ -410,7 +405,6 @@ const docTemplate = `{
                 }
             }
         },
->>>>>>> f9b0aa5 (add swagger api for admin)
         "admin.UserResponse": {
             "type": "object",
             "properties": {

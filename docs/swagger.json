@@ -22,8 +22,6 @@
                     "Admin"
                 ],
                 "summary": "Set a user as admin",
-<<<<<<< HEAD
-=======
                 "parameters": [
                     {
                         "description": "Encrypted data",
@@ -35,7 +33,6 @@
                         }
                     }
                 ],
->>>>>>> f9b0aa5 (add swagger api for admin)
                 "responses": {
                     "200": {
                         "description": "Admin status set successfully",
@@ -389,8 +386,6 @@
                 }
             }
         },
-<<<<<<< HEAD
-=======
         "admin.EncryptedData": {
             "type": "object",
             "properties": {
@@ -399,7 +394,6 @@
                 }
             }
         },
->>>>>>> f9b0aa5 (add swagger api for admin)
         "admin.UserResponse": {
             "type": "object",
             "properties": {

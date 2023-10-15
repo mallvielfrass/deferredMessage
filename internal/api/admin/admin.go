@@ -31,6 +31,7 @@ func Init(services *service.Service, middleware *middleware.Middleware) Admin {
 // @Tags Admin
 // @Accept json
 // @Produce json
+// @Param body body EncryptedData true "Encrypted data"
 // @Success 200 {object} AdminResponse "Admin status set successfully"
 // @Failure 400 {object} models.ErrorResponse "Bad request"
 // @Router /api/admin/ [post]
