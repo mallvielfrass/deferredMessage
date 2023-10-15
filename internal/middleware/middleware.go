@@ -13,8 +13,8 @@ type Middleware struct {
 	service *service.Service
 }
 
-func InitMiddleware(service *service.Service) Middleware {
-	return Middleware{
+func InitMiddleware(service *service.Service) *Middleware {
+	return &Middleware{
 		service: service,
 	}
 }
