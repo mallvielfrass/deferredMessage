@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	tele "gopkg.in/telebot.v3"
 	"gopkg.in/telebot.v3/middleware"
 )
@@ -71,12 +70,8 @@ func (b *Bot) Mount() {
 			fmt.Println("/link: ERR:", err)
 			return c.Reply("invalid group id")
 		}
-		sessionObjectID, err := primitive.ObjectIDFromHex(groupId)
-		if err != nil {
-			return c.Reply("invalid group id")
-		}
-		fmt.Println(sessionObjectID)
-		chat, exist, err := b.db.Collections.Chat.GetChatByID(sessionObjectID)
+
+		chat, exist, err := b.db.Collections.Chat.GetChatByID(groupId)
 		if err != nil {
 			fmt.Println("/link: ERR:", err)
 			return c.Reply("invalid group id")

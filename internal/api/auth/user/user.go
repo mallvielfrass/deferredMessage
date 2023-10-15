@@ -2,13 +2,11 @@ package user
 
 import (
 	db "deferredMessage/internal/repository"
-	"deferredMessage/internal/repository/mongo/session"
-	"fmt"
+	sessionutils "deferredMessage/internal/utils/sessionUtils"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type userApi struct {
@@ -52,13 +50,12 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 
 	userChats := r.Group("/chats")
 	userChats.GET("/", func(c *gin.Context) {
-		userSession, ok := c.Get("session")
-		if !ok {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no session"})
+
+		session, err := sessionutils.GetSession(c)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		session := userSession.(session.SessionScheme)
-		fmt.Println(session)
 
 		user, exist, err := n.db.Collections.User.GetUserByID(session.UserID)
 
@@ -108,7 +105,7 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		var respArray []Chat
 		for _, chat := range chats {
 			respArray = append(respArray, Chat{
-				ID:            chat.ID.Hex(),
+				ID:            chat.ID,
 				Name:          chat.Name,
 				BotIdentifier: chat.BotIdentifier,
 				BotID:         chat.BotID,
@@ -185,23 +182,16 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 		}
 		//fmt.Println(params)
 
-		//user
-		userSession, ok := c.Get("session")
-		if !ok {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no session"})
+		session, err := sessionutils.GetSession(c)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
-		session := userSession.(session.SessionScheme)
-		fmt.Println(session)
 
 		chatId := c.Param("id")
 		//	fmt.Printf("chatId: %v\n", chatId)
-		chatObjectID, err := primitive.ObjectIDFromHex(chatId)
-		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid chat id"})
-			return
-		}
-		chat, exist, err := n.db.Collections.Chat.GetChatByID(chatObjectID)
+
+		chat, exist, err := n.db.Collections.Chat.GetChatByID(chatId)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -214,7 +204,7 @@ func (n userApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "you are not creator"})
 			return
 		}
-		err = n.db.Collections.Chat.UpdateChat(chatObjectID, params)
+		err = n.db.Collections.Chat.UpdateChat(chatId, params)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return

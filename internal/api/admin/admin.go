@@ -51,7 +51,7 @@ func (a Admin) HandleSetAdmin(c *gin.Context) {
 			Name:  settedUser.Name,
 			Mail:  settedUser.Mail,
 			Admin: settedUser.Admin,
-			ID:    settedUser.ID.Hex(),
+			ID:    settedUser.ID,
 		},
 		IsAdmin: isSetAdmin,
 	})

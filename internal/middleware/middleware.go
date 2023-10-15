@@ -3,12 +3,10 @@ package middleware
 import (
 	db "deferredMessage/internal/repository"
 	"deferredMessage/internal/repository/mongo/session"
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Middleware struct {
@@ -27,14 +25,8 @@ func (n Middleware) checkSession(c *gin.Context) (*gin.Context, interface{}, boo
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no token"})
 		return c, nil, false
 	}
-	//validate and convert token to primitive.ObjectID
-	sessionID, err := primitive.ObjectIDFromHex(token)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
-		return c, nil, false
-	}
 
-	session, exist, err := n.db.Collections.Session.GetSessionByID(sessionID)
+	session, exist, err := n.db.Collections.Session.GetSessionByID(token)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return c, nil, false
@@ -90,8 +82,7 @@ func (n Middleware) CheckAdmin() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
 			return
 		}
-		user, isExist, err := n.db.Collections.User.GetUserByID(session.UserID)
-		fmt.Printf("user: %#v\n", user)
+		user, isExist, err := n.db.Collections.User.GetUserByID(session.UserID.Hex())
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return

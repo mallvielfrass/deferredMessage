@@ -11,7 +11,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type botApi struct {
@@ -51,10 +50,10 @@ func (n botApi) HandleGetBotsList(c *gin.Context) {
 	for _, bot := range bots {
 		botsResponse = append(botsResponse, BotResponse{
 			Name:    bot.Name,
-			Id:      bot.ID.Hex(),
+			Id:      bot.ID,
 			BotLink: bot.BotLink,
 
-			Creator:  bot.Creator.Hex(),
+			Creator:  bot.Creator,
 			Platform: bot.Platform,
 		})
 	}
@@ -121,10 +120,10 @@ func (n botApi) HandleCreateBot(c *gin.Context) {
 
 	resp := BotResponse{
 		Name:     bot.Name,
-		Id:       bot.ID.Hex(),
+		Id:       bot.ID,
 		BotLink:  bot.BotLink,
 		Platform: bot.Platform,
-		Creator:  bot.Creator.Hex(),
+		Creator:  bot.Creator,
 		Token:    obfuscatedToken,
 	}
 
@@ -159,14 +158,8 @@ func (n botApi) UpdateBot(c *gin.Context) {
 			Error: err.Error()})
 		return
 	}
-	botObjectId, err := primitive.ObjectIDFromHex(botId)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
-			Error: "invalid id"})
-		return
-	}
 
-	bot, isExist, err := n.db.Collections.Bot.GetBotByID(botObjectId)
+	bot, isExist, err := n.db.Collections.Bot.GetBotByID(botId)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, models.ErrorResponse{
 			Error: err.Error()})
@@ -205,7 +198,7 @@ func (n botApi) UpdateBot(c *gin.Context) {
 	}
 	utils.HashTokenFromMap(&body)
 	//fmt.Printf("body: %+v\n", body)
-	botUpdated, _, err := n.db.Collections.Bot.UpdateBot(botObjectId, body)
+	botUpdated, _, err := n.db.Collections.Bot.UpdateBot(botId, body)
 	if err != nil {
 		fmt.Printf("update err: %+v\n", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
@@ -222,10 +215,10 @@ func (n botApi) UpdateBot(c *gin.Context) {
 	obfuscatedToken := utils.ObfuscateToken(decryptToken)
 	resp := BotResponse{
 		Name:     botUpdated.Name,
-		Id:       botUpdated.ID.Hex(),
+		Id:       botUpdated.ID,
 		BotLink:  botUpdated.BotLink,
 		Platform: botUpdated.Platform,
-		Creator:  botUpdated.Creator.Hex(),
+		Creator:  botUpdated.Creator,
 		Token:    obfuscatedToken,
 	}
 
