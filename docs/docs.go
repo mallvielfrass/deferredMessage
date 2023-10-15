@@ -15,6 +15,40 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/admin/": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Sets the authenticated user as an admin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Set a user as admin",
+                "responses": {
+                    "200": {
+                        "description": "Admin status set successfully",
+                        "schema": {
+                            "$ref": "#/definitions/admin.AdminResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/auth/user/ping": {
             "get": {
                 "security": [
@@ -341,6 +375,34 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "admin.AdminResponse": {
+            "type": "object",
+            "properties": {
+                "isAdmin": {
+                    "type": "boolean"
+                },
+                "user": {
+                    "$ref": "#/definitions/admin.UserResponse"
+                }
+            }
+        },
+        "admin.UserResponse": {
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "admin": {
+                    "type": "boolean"
+                },
+                "mail": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "bot.BotRequest": {
             "type": "object",
             "required": [

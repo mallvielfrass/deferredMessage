@@ -1,4 +1,22 @@
 definitions:
+  admin.AdminResponse:
+    properties:
+      isAdmin:
+        type: boolean
+      user:
+        $ref: '#/definitions/admin.UserResponse'
+    type: object
+  admin.UserResponse:
+    properties:
+      _id:
+        type: string
+      admin:
+        type: boolean
+      mail:
+        type: string
+      name:
+        type: string
+    type: object
   bot.BotRequest:
     properties:
       botLink:
@@ -125,6 +143,27 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/admin/:
+    post:
+      consumes:
+      - application/json
+      description: Sets the authenticated user as an admin.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Admin status set successfully
+          schema:
+            $ref: '#/definitions/admin.AdminResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Set a user as admin
+      tags:
+      - Admin
   /api/auth/user/ping:
     get:
       consumes:

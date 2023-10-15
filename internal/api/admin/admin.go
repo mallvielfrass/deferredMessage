@@ -24,7 +24,16 @@ func Init(services *service.Service, middleware *middleware.Middleware) Admin {
 	}
 }
 
-// HandleSetAdmin
+// HandleSetAdmin sets a user as admin.
+// @Summary Set a user as admin
+// @Description Sets the authenticated user as an admin.
+// @Security Bearer
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Success 200 {object} AdminResponse "Admin status set successfully"
+// @Failure 400 {object} models.ErrorResponse "Bad request"
+// @Router /api/admin/ [post]
 func (a Admin) HandleSetAdmin(c *gin.Context) {
 	session, err := sessionutils.GetSession(c)
 	if err != nil {
