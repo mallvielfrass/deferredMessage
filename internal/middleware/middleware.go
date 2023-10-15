@@ -1,51 +1,40 @@
 package middleware
 
 import (
-	db "deferredMessage/internal/repository"
-	"deferredMessage/internal/repository/mongo/session"
+	"deferredMessage/internal/models"
+	"deferredMessage/internal/service"
+	sessionutils "deferredMessage/internal/utils/sessionUtils"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Middleware struct {
-	db db.DB
+	service *service.Service
 }
 
-func InitMiddleware(db db.DB) Middleware {
+func InitMiddleware(service *service.Service) Middleware {
 	return Middleware{
-		db: db,
+		service: service,
 	}
 }
-func (n Middleware) checkSession(c *gin.Context) (*gin.Context, interface{}, bool) {
+func (n Middleware) checkSession(c *gin.Context) (*gin.Context, models.SessionScheme, bool) {
 	//get token from header
 	token := c.GetHeader("Authorization")
 	if token == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no token"})
-		return c, nil, false
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: "no token",
+		})
+		return c, models.SessionScheme{}, false
 	}
-
-	session, exist, err := n.db.Collections.Session.GetSessionByID(token)
+	session, err := n.service.SessionService.CheckSession(token)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return c, nil, false
+		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+			Error: err.Error(),
+		})
+		return c, models.SessionScheme{}, false
 	}
-	if !exist {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
-		return c, nil, false
-	}
-
 	c.Set("session", session)
-
-	if session.Expire < time.Now().Unix() {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "session expired"})
-		return c, nil, false
-	}
-	if !session.Valid {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
-		return c, nil, false
-	}
 	return c, session, true
 }
 func (n Middleware) CheckAuth() gin.HandlerFunc {
@@ -54,7 +43,8 @@ func (n Middleware) CheckAuth() gin.HandlerFunc {
 		c = ctx
 		if !ok {
 			if !c.IsAborted() {
-				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid session"})
+				c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+					Error: "invalid session"})
 			}
 			return
 		}
@@ -63,39 +53,25 @@ func (n Middleware) CheckAuth() gin.HandlerFunc {
 }
 func (n Middleware) CheckAdmin() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		sessionFromCtx, isExist := c.Get("session")
-		if !isExist {
-			ctx, session, ok := n.checkSession(c)
-			c = ctx
-			sessionFromCtx = session
-			if !ok {
-				if !c.IsAborted() {
-					c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid session"})
-				}
-				return
-			}
-		}
-
-		session, ok := sessionFromCtx.(session.SessionScheme)
-
-		if !ok {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
-			return
-		}
-		user, isExist, err := n.db.Collections.User.GetUserByID(session.UserID.Hex())
+		session, err := sessionutils.GetSession(c)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: err.Error()})
 			return
 		}
-		if !isExist {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "invalid token"})
+		userIsAdmin, err := n.service.UserService.UserIsAdmin(session.UserID)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: err.Error(),
+			})
+		}
+		if !userIsAdmin {
+			c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
+				Error: "you are not admin",
+			})
 			return
 		}
 
-		if !user.Admin {
-			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "you are not admin"})
-			return
-		}
 		c.Next()
 	}
 }
