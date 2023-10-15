@@ -1,6 +1,12 @@
 package handler
 
 import (
+	"deferredMessage/internal/api/admin"
+	"deferredMessage/internal/api/auth/user"
+	"deferredMessage/internal/api/bot"
+	"deferredMessage/internal/api/noauth"
+	"deferredMessage/internal/api/platform"
+	"deferredMessage/internal/middleware"
 	"deferredMessage/internal/service"
 	"net/http"
 
@@ -10,12 +16,14 @@ import (
 )
 
 type Handler struct {
-	services *service.Service
+	services   *service.Service
+	middleware *middleware.Middleware
 }
 
-func NewHandler(services *service.Service) *Handler {
+func NewHandler(services *service.Service, middleware *middleware.Middleware) *Handler {
 	return &Handler{
-		services: services,
+		services:   services,
+		middleware: middleware,
 	}
 }
 
@@ -57,15 +65,14 @@ func (h *Handler) newRouter() *gin.Engine {
 	///static files
 	router.Static("/static", "./internal/static")
 
-	// sessionMiddleware := middleware.InitMiddleware(db)
-	// authUserApi := r.Group("/auth")
-	// authUserApi.Use(sessionMiddleware.CheckAuth())
+	authUserApi := r.Group("/auth")
+	authUserApi.Use(h.middleware.CheckAuth())
 
-	// noauth.Init(db).Router(r.Group("/nauth"))
-	// user.Init(db).Router(authUserApi.Group("/user"))
-	// platform.Init(db).Router(authUserApi.Group("/platform"))
-	// bot.Init(db).Router(authUserApi.Group("/bot"))
-	// admin.Init(db).Router(authUserApi.Group("/admin"))
+	noauth.Init(db).Router(r.Group("/nauth"))
+	user.Init(db).Router(authUserApi.Group("/user"))
+	platform.Init(db).Router(authUserApi.Group("/platform"))
+	bot.Init(db).Router(authUserApi.Group("/bot"))
+	admin.Init(db).Router(authUserApi.Group("/admin"))
 	return router
 }
 func (h *Handler) Run(port string) error {
