@@ -2,6 +2,7 @@ package session
 
 import (
 	"context"
+	"deferredMessage/internal/models"
 	"fmt"
 	"os"
 	"time"
@@ -49,33 +50,46 @@ func Init(driver *mongo.Database) Session {
 }
 
 // find by ID
-func (Session Session) GetSessionByID(id primitive.ObjectID) (SessionScheme, bool, error) {
+func (Session Session) GetSessionByID(id string) (models.SessionScheme, bool, error) {
+
+	idObjectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return models.SessionScheme{}, false, err
+	}
 	var findedSession SessionScheme
-	err := Session.ct.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&findedSession)
-	//fmt.Printf("findedSession: %#v\n", findedSession)
-	//fmt.Printf("err: %#v\n", err)
+	err = Session.ct.FindOne(context.TODO(), bson.M{"_id": idObjectID}).Decode(&findedSession)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return SessionScheme{}, false, nil
+			return models.SessionScheme{}, false, nil
 		}
-		return SessionScheme{}, false, err
+		return models.SessionScheme{}, false, err
 	}
-	return findedSession, true, nil
+	return models.SessionScheme{
+		ID:        findedSession.ID.Hex(),
+		UserID:    findedSession.UserID.Hex(),
+		Expire:    findedSession.Expire,
+		IP:        findedSession.IP,
+		Valid:     findedSession.Valid,
+		AtCreated: findedSession.AtCreated,
+	}, true, nil
 }
 
 // create Session (name, hash)
-func (Session Session) CreateSession(UserID primitive.ObjectID, expire int64, ip string) (SessionScheme, error) {
-
-	res, err := Session.ct.InsertOne(context.TODO(), bson.M{"user_id": UserID, "expire": expire, "ip": ip, "valid": true, "at_created": time.Now().Unix()})
+func (Session Session) CreateSession(UserID string, expire int64, ip string) (models.SessionScheme, error) {
+	userObjectID, err := primitive.ObjectIDFromHex(UserID)
 	if err != nil {
-		return SessionScheme{}, err
+		return models.SessionScheme{}, err
 	}
-	u, isExist, err := Session.GetSessionByID(res.InsertedID.(primitive.ObjectID))
+	res, err := Session.ct.InsertOne(context.TODO(), bson.M{"user_id": userObjectID, "expire": expire, "ip": ip, "valid": true, "at_created": time.Now().Unix()})
 	if err != nil {
-		return SessionScheme{}, err
+		return models.SessionScheme{}, err
+	}
+	u, isExist, err := Session.GetSessionByID(res.InsertedID.(primitive.ObjectID).Hex())
+	if err != nil {
+		return models.SessionScheme{}, err
 	}
 	if !isExist {
-		return SessionScheme{}, fmt.Errorf("Session not created")
+		return models.SessionScheme{}, fmt.Errorf("Session not created")
 	}
 	// fmt.Println(res)
 	// fmt.Println(u)

@@ -2,6 +2,7 @@ package platform
 
 import (
 	"context"
+	"deferredMessage/internal/models"
 	"fmt"
 	"os"
 	"slices"
@@ -43,7 +44,7 @@ func Init(driver *mongo.Database) Platform {
 }
 
 // GetAllPlatforms() ([]platform.PlatformScheme, error)
-func (c Platform) GetAllPlatforms() ([]PlatformScheme, error) {
+func (c Platform) GetAllPlatforms() ([]models.PlatformScheme, error) {
 	var platforms []PlatformScheme
 	cursor, err := c.ct.Find(context.TODO(), bson.M{})
 	if err != nil {
@@ -53,31 +54,40 @@ func (c Platform) GetAllPlatforms() ([]PlatformScheme, error) {
 	if err != nil {
 		return nil, err
 	}
-	return platforms, nil
+	var foundPlatforms []models.PlatformScheme
+	for _, platform := range platforms {
+		foundPlatforms = append(foundPlatforms, models.PlatformScheme{
+			Name: platform.Name,
+			ID:   platform.ID.Hex(),
+		})
+	}
+	return foundPlatforms, nil
 }
 
 // CreatePlatform(name string) (platform.PlatformScheme, error)
-func (c Platform) CreatePlatform(name string) (PlatformScheme, error) {
+func (c Platform) CreatePlatform(name string) (models.PlatformScheme, error) {
 	res, err := c.ct.InsertOne(context.TODO(), bson.M{"name": name})
 	if err != nil {
-		return PlatformScheme{}, err
+		return models.PlatformScheme{}, err
 	}
 
-	return PlatformScheme{
+	return models.PlatformScheme{
 		Name: name,
-		ID:   res.InsertedID.(primitive.ObjectID),
+		ID:   res.InsertedID.(primitive.ObjectID).Hex(),
 	}, nil
 }
 
 // GetPlatformByName(name string) (platform.PlatformScheme, bool, error)
-func (c Platform) GetPlatformByName(name string) (PlatformScheme, bool, error) {
+func (c Platform) GetPlatformByName(name string) (models.PlatformScheme, bool, error) {
 	var findedPlatform PlatformScheme
 	err := c.ct.FindOne(context.TODO(), bson.M{"name": name}).Decode(&findedPlatform)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return PlatformScheme{}, false, nil
+			return models.PlatformScheme{}, false, nil
 		}
-		return PlatformScheme{}, false, err
+		return models.PlatformScheme{}, false, err
 	}
-	return findedPlatform, true, nil
+	return models.PlatformScheme{
+		Name: name, ID: findedPlatform.ID.Hex(),
+	}, true, nil
 }

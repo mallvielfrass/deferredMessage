@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"deferredMessage/internal/models"
 	"fmt"
 	"os"
 
@@ -50,8 +51,7 @@ func Init(driver *mongo.Database) User {
 func (user User) CheckUserByMail(mail string) (bool, error) {
 	var findedUser UserScheme
 	err := user.ct.FindOne(context.TODO(), bson.M{"mail": mail}).Decode(&findedUser)
-	fmt.Printf("findedUser: %#v\n", findedUser)
-	fmt.Printf("err: %#v\n", err)
+
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return false, nil
@@ -62,11 +62,33 @@ func (user User) CheckUserByMail(mail string) (bool, error) {
 }
 
 // find by ID
-func (user User) GetUserByID(id primitive.ObjectID) (UserScheme, bool, error) {
+func (user User) GetUserByID(id string) (models.UserScheme, bool, error) {
 	var findedUser UserScheme
 	err := user.ct.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&findedUser)
 	fmt.Printf("findedUser: %#v\n", findedUser)
 	fmt.Printf("err: %#v\n", err)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return models.UserScheme{}, false, nil
+		}
+		return models.UserScheme{}, false, err
+	}
+	var chatsStr []string
+	for _, v := range findedUser.Chats {
+		chatsStr = append(chatsStr, v.Hex())
+	}
+	return models.UserScheme{
+		Name:  findedUser.Name,
+		Mail:  findedUser.Mail,
+		Hash:  findedUser.Hash,
+		ID:    findedUser.ID.Hex(),
+		Admin: findedUser.Admin,
+		Chats: chatsStr,
+	}, true, nil
+}
+func (user User) getUserById(id primitive.ObjectID) (UserScheme, bool, error) {
+	var findedUser UserScheme
+	err := user.ct.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&findedUser)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return UserScheme{}, false, nil
@@ -77,55 +99,95 @@ func (user User) GetUserByID(id primitive.ObjectID) (UserScheme, bool, error) {
 }
 
 // find by ID
-func (user User) GetUserByMail(mail string) (UserScheme, bool, error) {
+func (user User) GetUserByMail(mail string) (models.UserScheme, bool, error) {
 	var findedUser UserScheme
 	err := user.ct.FindOne(context.TODO(), bson.M{"mail": mail}).Decode(&findedUser)
 	//fmt.Printf("findedUser: %#v\n", findedUser)
 	fmt.Printf("err: %#v\n", err)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return UserScheme{}, false, nil
+			return models.UserScheme{}, false, nil
 		}
-		return UserScheme{}, false, err
+		return models.UserScheme{}, false, err
 	}
-	return findedUser, true, nil
+	return models.UserScheme{
+		Name:  findedUser.Name,
+		Mail:  findedUser.Mail,
+		Hash:  findedUser.Hash,
+		ID:    findedUser.ID.Hex(),
+		Admin: findedUser.Admin,
+	}, true, nil
 }
 
 // create User (name, hash)
-func (user User) CreateUser(name, mail, hash string) (UserScheme, error) {
+func (user User) CreateUser(name, mail, hash string) (models.UserScheme, error) {
 	fmt.Printf("name: %s, mail: %s, hash: %s\n", name, mail, hash)
 	res, err := user.ct.InsertOne(context.TODO(), bson.M{"name": name, "mail": mail, "hash": hash})
 	if err != nil {
-		return UserScheme{}, err
+		return models.UserScheme{}, err
 	}
-	u, isExist, err := user.GetUserByID(res.InsertedID.(primitive.ObjectID))
+
+	u, isExist, err := user.getUserById(res.InsertedID.(primitive.ObjectID))
 	if err != nil {
-		return UserScheme{}, err
+		return models.UserScheme{}, err
 	}
 	if !isExist {
-		return UserScheme{}, fmt.Errorf("User not created")
+		return models.UserScheme{}, fmt.Errorf("User not created")
 	}
-	fmt.Println(res)
-	fmt.Println(u)
-	return u, nil
+
+	return models.UserScheme{
+		Name:  u.Name,
+		Mail:  u.Mail,
+		Hash:  u.Hash,
+		ID:    u.ID.Hex(),
+		Admin: u.Admin,
+	}, nil
 }
 
 // add chat to user
-func (user User) AddChatToUser(chatID primitive.ObjectID, userID primitive.ObjectID) error {
-	res, err := user.ct.UpdateOne(context.TODO(), bson.M{"_id": userID}, bson.M{"$push": bson.M{"chats": chatID}})
+func (user User) AddChatToUser(chatID string, userID string) error {
+	chatObjectID, err := primitive.ObjectIDFromHex(chatID)
 	if err != nil {
 		return err
 	}
-	fmt.Println(res)
+	useObjectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+	res, err := user.ct.UpdateOne(context.TODO(), bson.M{"_id": useObjectID}, bson.M{"$push": bson.M{"chats": chatObjectID}})
+	if err != nil {
+		return err
+	}
+	if res.ModifiedCount == 0 {
+		return fmt.Errorf("chat not added")
+	}
 	return nil
 }
 
 // SetUserAdmin(id primitive.ObjectID) (user.UserScheme, bool, error)
-func (user User) SetUserAdmin(id primitive.ObjectID) (UserScheme, bool, error) {
-	_, err := user.ct.UpdateOne(context.TODO(), bson.M{"_id": id}, bson.M{"$set": bson.M{"admin": true}})
+func (user User) SetUserAdmin(userID string) (models.UserScheme, bool, error) {
+	useObjectID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return UserScheme{}, false, err
+		return models.UserScheme{}, false, err
+	}
+	_, err = user.ct.UpdateOne(context.TODO(), bson.M{"_id": useObjectID}, bson.M{"$set": bson.M{"admin": true}})
+	if err != nil {
+		return models.UserScheme{}, false, err
 	}
 
-	return user.GetUserByID(id)
+	u, isExist, err := user.getUserById(useObjectID)
+	if err != nil {
+		return models.UserScheme{}, false, err
+	}
+	if !isExist {
+		return models.UserScheme{}, false, fmt.Errorf("User not found")
+	}
+
+	return models.UserScheme{
+		Name:  u.Name,
+		Mail:  u.Mail,
+		Hash:  u.Hash,
+		ID:    u.ID.Hex(),
+		Admin: u.Admin,
+	}, true, nil
 }

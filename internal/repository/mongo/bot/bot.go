@@ -2,6 +2,7 @@ package bot
 
 import (
 	"context"
+	"deferredMessage/internal/models"
 	"fmt"
 	"os"
 
@@ -48,60 +49,85 @@ func Init(driver *mongo.Database) Bot {
 		ct: driver.Collection(collectionName),
 	}
 }
-func (c Bot) GetBotByID(id primitive.ObjectID) (BotScheme, bool, error) {
+func (c Bot) GetBotByID(id string) (models.BotScheme, bool, error) {
+	botObjectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return models.BotScheme{}, false, err
+	}
 	var findedBot BotScheme
-	err := c.ct.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&findedBot)
+	err = c.ct.FindOne(context.TODO(), bson.M{"_id": botObjectID}).Decode(&findedBot)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			return BotScheme{}, false, nil
+			return models.BotScheme{}, false, nil
 		}
-		return BotScheme{}, false, err
+		return models.BotScheme{}, false, err
 	}
-	return findedBot, true, nil
+	return models.BotScheme{
+		Name:     findedBot.Name,
+		BotLink:  findedBot.BotLink,
+		Creator:  findedBot.Creator.Hex(),
+		Platform: findedBot.Platform,
+		//HashedToken: bot.HashedToken,
+		ID: findedBot.ID.Hex(),
+	}, true, nil
 }
 
-//	func (c Bot) UpdateBot(Bot BotScheme) error {
+//	func (c Bot) UpdateBot(Bot models.BotScheme) error {
 //		_, err := c.ct.UpdateOne(context.TODO(), bson.M{"_id": Bot.ID}, bson.M{"$set": Bot})
 //		return err
 //	}
 //
 
-func (c Bot) CreateBot(name string, botLink string, creator primitive.ObjectID, platform string, hashedToken string) (BotScheme, error) {
-
+func (c Bot) CreateBot(name string, botLink string, creator string, platform string, hashedToken string) (models.BotScheme, error) {
+	creatorObjectID, err := primitive.ObjectIDFromHex(creator)
+	if err != nil {
+		return models.BotScheme{}, fmt.Errorf("invalid creator id: %s", creator)
+	}
 	bot := BotScheme{
 		Name:        name,
 		BotLink:     botLink,
-		Creator:     creator,
+		Creator:     creatorObjectID,
 		Platform:    platform,
 		HashedToken: hashedToken,
 	}
 	res, err := c.ct.InsertOne(context.TODO(), bson.M{
 		"name":        name,
 		"botLink":     botLink,
-		"creator":     creator,
+		"creator":     creatorObjectID,
 		"platform":    platform,
 		"hashedToken": hashedToken,
 	})
 	if err != nil {
-		return BotScheme{}, err
+		return models.BotScheme{}, err
 	}
 
 	bot.ID = res.InsertedID.(primitive.ObjectID)
 	//fmt.Printf("bot: %+v\n", bot)
-	return bot, nil
+	return models.BotScheme{
+		Name:     name,
+		BotLink:  botLink,
+		Creator:  creator,
+		Platform: platform,
+		//HashedToken: hashedToken,
+		ID: bot.ID.Hex(),
+	}, nil
 }
-func (c Bot) UpdateBot(botId primitive.ObjectID, data map[string]interface{}) (BotScheme, bool, error) {
-	_, err := c.ct.UpdateOne(context.TODO(), bson.M{"_id": botId}, bson.M{"$set": data})
+func (c Bot) UpdateBot(botId string, data map[string]interface{}) (models.BotScheme, bool, error) {
+	botObjectID, err := primitive.ObjectIDFromHex(botId)
 	if err != nil {
-		return BotScheme{}, false, err
+		return models.BotScheme{}, false, err
+	}
+	_, err = c.ct.UpdateOne(context.TODO(), bson.M{"_id": botObjectID}, bson.M{"$set": data})
+	if err != nil {
+		return models.BotScheme{}, false, err
 	}
 	bot, isExist, err := c.GetBotByID(botId)
 	return bot, isExist, err
 }
 
 // GetAllBots
-func (c Bot) GetAllBots() ([]BotScheme, error) {
-	var findedBots []BotScheme
+func (c Bot) GetAllBots() ([]models.BotScheme, error) {
+	var findedBots []models.BotScheme
 	cur, err := c.ct.Find(context.TODO(), bson.M{})
 	if err != nil {
 		return nil, err
@@ -117,7 +143,14 @@ func (c Bot) GetAllBots() ([]BotScheme, error) {
 		if err != nil {
 			return nil, err
 		}
-		findedBots = append(findedBots, bot)
+		findedBots = append(findedBots, models.BotScheme{
+			Name:     bot.Name,
+			BotLink:  bot.BotLink,
+			Creator:  bot.Creator.Hex(),
+			Platform: bot.Platform,
+			//HashedToken: bot.HashedToken,
+			ID: bot.ID.Hex(),
+		})
 	}
 	if err := cur.Err(); err != nil {
 		return nil, err
@@ -125,8 +158,8 @@ func (c Bot) GetAllBots() ([]BotScheme, error) {
 	return findedBots, nil
 }
 
-// func (c Bot) GetBotsByArrayID(Bots []primitive.ObjectID) ([]BotScheme, error) {
-// 	var findedBots []BotScheme
+// func (c Bot) GetBotsByArrayID(Bots []primitive.ObjectID) ([]models.BotScheme, error) {
+// 	var findedBots []models.BotScheme
 // 	cur, err := c.ct.Find(context.TODO(), bson.M{"_id": bson.M{"$in": Bots}})
 // 	if err != nil {
 // 		return nil, err
@@ -134,7 +167,7 @@ func (c Bot) GetAllBots() ([]BotScheme, error) {
 
 // 	defer cur.Close(context.TODO())
 // 	for cur.Next(context.TODO()) {
-// 		var Bot BotScheme
+// 		var Bot models.BotScheme
 // 		err := cur.Decode(&Bot)
 // 		if err != nil {
 // 			return nil, err

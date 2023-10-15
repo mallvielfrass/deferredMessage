@@ -22,3 +22,12 @@ type UserIdentify struct {
 	Mail  string
 	Admin bool
 }
+type UserScheme struct {
+	Name  string `bson:"name"`
+	Mail  string `bson:"mail"`
+	Hash  string `bson:"hash"`
+	ID    string `bson:"_id"`
+	Admin bool   `bson:"admin"`
+	//Chats array with id of chats refferenced to ChatScheme
+	Chats []string `bson:"chats"`
+}

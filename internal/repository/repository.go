@@ -1,47 +1,47 @@
 package repository
 
 import (
+	"deferredMessage/internal/models"
 	"deferredMessage/internal/repository/mongo/bot"
 	"deferredMessage/internal/repository/mongo/chat"
 	"deferredMessage/internal/repository/mongo/platform"
 	"deferredMessage/internal/repository/mongo/session"
 	"deferredMessage/internal/repository/mongo/user"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Bot interface {
-	GetBotByID(id primitive.ObjectID) (bot.BotScheme, bool, error)
+	GetBotByID(id string) (models.BotScheme, bool, error)
 
-	CreateBot(name string, botLink string, creator primitive.ObjectID, platform string, hashedToken string) (bot.BotScheme, error)
-	UpdateBot(botId primitive.ObjectID, data map[string]interface{}) (bot.BotScheme, bool, error)
-	GetAllBots() ([]bot.BotScheme, error)
+	CreateBot(name string, botLink string, creator string, platform string, hashedToken string) (models.BotScheme, error)
+	UpdateBot(botId string, data map[string]interface{}) (models.BotScheme, bool, error)
+	GetAllBots() ([]models.BotScheme, error)
 }
 type Chat interface {
-	GetChatByID(id primitive.ObjectID) (chat.ChatScheme, bool, error)
-	UpdateChat(chatId primitive.ObjectID, data map[string]interface{}) error
-	CreateChat(name string, botIdentifier string, botID string, userID primitive.ObjectID) (chat.ChatScheme, error)
-	GetChatsByArrayID(chats []primitive.ObjectID) ([]chat.ChatScheme, error)
+	GetChatByID(id string) (models.ChatScheme, bool, error)
+	UpdateChat(chatId string, data map[string]interface{}) error
+	CreateChat(name string, botIdentifier string, botID string, userID string) (models.ChatScheme, error)
+	GetChatsByArrayID(chats []string) ([]models.ChatScheme, error)
 }
 type Platform interface {
-	// GetPlatformByID(id primitive.ObjectID) (platform.PlatformScheme, bool, error)
-	CreatePlatform(name string) (platform.PlatformScheme, error)
-	// UpdatePlatform(platformIdentifier string, data map[string]string) (platform.PlatformScheme, bool, error)
-	GetAllPlatforms() ([]platform.PlatformScheme, error)
-	GetPlatformByName(name string) (platform.PlatformScheme, bool, error)
+	// GetPlatformByID(id string) (models.PlatformScheme, bool, error)
+	CreatePlatform(name string) (models.PlatformScheme, error)
+	// UpdatePlatform(platformIdentifier string, data map[string]string) (models.PlatformScheme, bool, error)
+	GetAllPlatforms() ([]models.PlatformScheme, error)
+	GetPlatformByName(name string) (models.PlatformScheme, bool, error)
 }
 type User interface {
 	CheckUserByMail(mailOrUsername string) (bool, error)
-	CreateUser(name, mail, hash string) (user.UserScheme, error)
-	GetUserByID(id primitive.ObjectID) (user.UserScheme, bool, error)
-	SetUserAdmin(id primitive.ObjectID) (user.UserScheme, bool, error)
-	GetUserByMail(mail string) (user.UserScheme, bool, error)
-	AddChatToUser(chatID primitive.ObjectID, userID primitive.ObjectID) error
+	CreateUser(name, mail, hash string) (models.UserScheme, error)
+	GetUserByID(id string) (models.UserScheme, bool, error)
+	SetUserAdmin(id string) (models.UserScheme, bool, error)
+	GetUserByMail(mail string) (models.UserScheme, bool, error)
+	AddChatToUser(chatID string, userID string) error
 }
 type Session interface {
-	GetSessionByID(id primitive.ObjectID) (session.SessionScheme, bool, error)
-	CreateSession(UserID primitive.ObjectID, expire int64, ip string) (session.SessionScheme, error)
+	GetSessionByID(id string) (models.SessionScheme, bool, error)
+	CreateSession(UserID string, expire int64, ip string) (models.SessionScheme, error)
 }
 type Repository struct {
 	Chat     Chat
