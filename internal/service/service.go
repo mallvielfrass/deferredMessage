@@ -21,6 +21,7 @@ type UserService interface {
 	CreateUser(name string, mail string, hash string) (models.UserScheme, error)
 	GetUserByMail(mail string) (models.UserScheme, bool, error)
 	GetUserByID(userID string) (models.UserScheme, bool, error)
+	AddChatToUser(chatID string, userID string) error
 }
 type PlatformService interface {
 	CreatePlatform(name string) (models.PlatformScheme, error)

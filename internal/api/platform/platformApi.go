@@ -23,12 +23,12 @@ func (n platformApi) Router(router *gin.RouterGroup) *gin.RouterGroup {
 	r := router.Group("/")
 	middlewares := middleware.InitMiddleware(n.services)
 	//r.Use(middlewares.CheckAuth())
-	r.GET("/list", func(c *gin.Context) {
+	r.GET("/", func(c *gin.Context) {
 		platformsBson, err := n.services.PlatformService.GetAllPlatforms()
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		}
-		platforms := make([]PlatformResponse, 0)
+		var platforms []PlatformResponse
 		for _, platform := range platformsBson {
 			platforms = append(platforms, PlatformResponse{
 				Name: platform.Name,

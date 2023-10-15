@@ -47,3 +47,8 @@ func (u *userService) GetUserByMail(mail string) (models.UserScheme, bool, error
 func (u *userService) GetUserByID(id string) (models.UserScheme, bool, error) {
 	return u.repos.User.GetUserByID(id)
 }
+
+// AddChatToUser
+func (u *userService) AddChatToUser(chatID string, userID string) error {
+	return u.repos.User.AddChatToUser(chatID, userID)
+}
