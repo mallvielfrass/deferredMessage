@@ -52,11 +52,68 @@ definitions:
       token:
         type: string
     type: object
-  bot.ErrorResponse:
+  models.ErrorResponse:
     properties:
       error:
         type: string
       reason:
+        type: string
+    type: object
+  noauth.CheckUserRequest:
+    properties:
+      mail:
+        type: string
+    type: object
+  noauth.LoginBody:
+    properties:
+      mail:
+        type: string
+      password:
+        type: string
+    required:
+    - mail
+    - password
+    type: object
+  noauth.RegisterBody:
+    properties:
+      mail:
+        type: string
+      name:
+        description: json tag to de-serialize json body
+        type: string
+      password:
+        type: string
+    required:
+    - mail
+    - name
+    - password
+    type: object
+  noauth.RegisterUserResponse:
+    properties:
+      session:
+        $ref: '#/definitions/noauth.Session'
+      status:
+        type: string
+      user:
+        $ref: '#/definitions/noauth.User'
+    type: object
+  noauth.Session:
+    properties:
+      _id:
+        type: string
+      expire:
+        type: integer
+    type: object
+  noauth.StatusResponse:
+    properties:
+      status:
+        type: string
+    type: object
+  noauth.User:
+    properties:
+      mail:
+        type: string
+      name:
         type: string
     type: object
   user.MessageResponse:
@@ -107,11 +164,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/bot.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/bot.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
       security:
       - Bearer: []
       summary: Create a new bot
@@ -145,20 +202,102 @@ paths:
         "400":
           description: Bad request
           schema:
-            $ref: '#/definitions/bot.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/bot.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
         "404":
           description: Not found
           schema:
-            $ref: '#/definitions/bot.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
       security:
       - Bearer: []
       summary: Update an existing bot
       tags:
       - Bot
+  /api/noauth/check:
+    post:
+      consumes:
+      - application/json
+      description: Checks if a user exists based on the provided registration information.
+      parameters:
+      - description: Check user request body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/noauth.CheckUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User does not exist
+          schema:
+            $ref: '#/definitions/noauth.StatusResponse'
+        "202":
+          description: User already exists
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Check if user exists
+      tags:
+      - NoAuth
+  /api/noauth/login:
+    post:
+      consumes:
+      - application/json
+      description: Logs in a user with the provided login information.
+      parameters:
+      - description: Login information
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/noauth.LoginBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User logged in successfully
+          schema:
+            $ref: '#/definitions/noauth.RegisterUserResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Log in a user
+      tags:
+      - NoAuth
+  /api/noauth/register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user with the provided registration information.
+      parameters:
+      - description: Registration information
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/noauth.RegisterBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User created successfully
+          schema:
+            $ref: '#/definitions/noauth.RegisterUserResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Create a new user
+      tags:
+      - NoAuth
   /bot:
     get:
       description: Retrieves a list of all bots for user
@@ -172,7 +311,7 @@ paths:
         "400":
           description: Error getting bots
           schema:
-            $ref: '#/definitions/bot.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
       security:
       - Bearer: []
       summary: Get a list of all bots

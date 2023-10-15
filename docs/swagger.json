@@ -71,13 +71,13 @@
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/bot.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/bot.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
@@ -130,19 +130,145 @@
                     "400": {
                         "description": "Bad request",
                         "schema": {
-                            "$ref": "#/definitions/bot.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/bot.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not found",
                         "schema": {
-                            "$ref": "#/definitions/bot.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/noauth/check": {
+            "post": {
+                "description": "Checks if a user exists based on the provided registration information.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NoAuth"
+                ],
+                "summary": "Check if user exists",
+                "parameters": [
+                    {
+                        "description": "Check user request body",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/noauth.CheckUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User does not exist",
+                        "schema": {
+                            "$ref": "#/definitions/noauth.StatusResponse"
+                        }
+                    },
+                    "202": {
+                        "description": "User already exists",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/noauth/login": {
+            "post": {
+                "description": "Logs in a user with the provided login information.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NoAuth"
+                ],
+                "summary": "Log in a user",
+                "parameters": [
+                    {
+                        "description": "Login information",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/noauth.LoginBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User logged in successfully",
+                        "schema": {
+                            "$ref": "#/definitions/noauth.RegisterUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/noauth/register": {
+            "post": {
+                "description": "Creates a new user with the provided registration information.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "NoAuth"
+                ],
+                "summary": "Create a new user",
+                "parameters": [
+                    {
+                        "description": "Registration information",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/noauth.RegisterBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/noauth.RegisterUserResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
@@ -173,7 +299,7 @@
                     "400": {
                         "description": "Error getting bots",
                         "schema": {
-                            "$ref": "#/definitions/bot.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
@@ -285,13 +411,100 @@
                 }
             }
         },
-        "bot.ErrorResponse": {
+        "models.ErrorResponse": {
             "type": "object",
             "properties": {
                 "error": {
                     "type": "string"
                 },
                 "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "noauth.CheckUserRequest": {
+            "type": "object",
+            "properties": {
+                "mail": {
+                    "type": "string"
+                }
+            }
+        },
+        "noauth.LoginBody": {
+            "type": "object",
+            "required": [
+                "mail",
+                "password"
+            ],
+            "properties": {
+                "mail": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "noauth.RegisterBody": {
+            "type": "object",
+            "required": [
+                "mail",
+                "name",
+                "password"
+            ],
+            "properties": {
+                "mail": {
+                    "type": "string"
+                },
+                "name": {
+                    "description": "json tag to de-serialize json body",
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "noauth.RegisterUserResponse": {
+            "type": "object",
+            "properties": {
+                "session": {
+                    "$ref": "#/definitions/noauth.Session"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/noauth.User"
+                }
+            }
+        },
+        "noauth.Session": {
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "expire": {
+                    "type": "integer"
+                }
+            }
+        },
+        "noauth.StatusResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "noauth.User": {
+            "type": "object",
+            "properties": {
+                "mail": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }
