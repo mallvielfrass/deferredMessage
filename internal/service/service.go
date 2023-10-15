@@ -13,15 +13,21 @@ type AuthorizationService interface {
 type SessionService interface {
 	CheckSession(token string) (models.SessionScheme, error)
 }
+type UserService interface {
+	UserIsAdmin(userID string) (bool, error)
+}
 type Service struct {
 	repository *repository.Repository
 	SessionService
 	AuthorizationService
+	UserService
 }
 
 func NewService(repos *repository.Repository) *Service {
 	return &Service{
-		repository:     repos,
-		SessionService: NewSessionService(repos),
+		repository:           repos,
+		SessionService:       NewSessionService(repos),
+		AuthorizationService: NewAuthService(repos),
+		UserService:          NewUserService(repos),
 	}
 }
