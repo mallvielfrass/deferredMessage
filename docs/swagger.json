@@ -77,6 +77,37 @@
                 }
             }
         },
+        "/api/bot": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Retrieves a list of all bots for user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Bot"
+                ],
+                "summary": "Get a list of all bots",
+                "responses": {
+                    "200": {
+                        "description": "List of bots retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/bot.BotStructArrayResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Error getting bots",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/bot/": {
             "post": {
                 "security": [
@@ -186,6 +217,139 @@
                     },
                     "404": {
                         "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/chat": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Retrieves a list of chats created by the authenticated user.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Get chats list",
+                "responses": {
+                    "200": {
+                        "description": "List of chats",
+                        "schema": {
+                            "$ref": "#/definitions/chat.ChatsListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Creates a new chat with the provided chat details.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Create a chat",
+                "parameters": [
+                    {
+                        "description": "Chat details",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/chat.ChatRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Chat created successfully",
+                        "schema": {
+                            "$ref": "#/definitions/chat.CreateChatResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/chat/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Updates the settings of a chat identified by the provided ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Update chat settings",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Chat ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Chat name",
+                        "name": "name",
+                        "in": "body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "description": "Link or ID in bot",
+                        "name": "linkOrIdInBot",
+                        "in": "body",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Settings updated successfully",
+                        "schema": {
+                            "$ref": "#/definitions/models.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
@@ -312,37 +476,6 @@
                     },
                     "400": {
                         "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/models.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/bot": {
-            "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "Retrieves a list of all bots for user",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Bot"
-                ],
-                "summary": "Get a list of all bots",
-                "responses": {
-                    "200": {
-                        "description": "List of bots retrieved successfully",
-                        "schema": {
-                            "$ref": "#/definitions/bot.BotStructArrayResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Error getting bots",
                         "schema": {
                             "$ref": "#/definitions/models.ErrorResponse"
                         }
@@ -492,6 +625,97 @@
                 }
             }
         },
+        "chat.ChatRequest": {
+            "type": "object",
+            "properties": {
+                "botId": {
+                    "type": "string"
+                },
+                "linkOrIdInBot": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "chat.ChatsListResponse": {
+            "type": "object",
+            "properties": {
+                "chats": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ChatScheme"
+                    }
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                }
+            }
+        },
+        "chat.CreateChatResponse": {
+            "type": "object",
+            "properties": {
+                "chat": {
+                    "$ref": "#/definitions/chat.createdChatType"
+                }
+            }
+        },
+        "chat.createdChatType": {
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "botId": {
+                    "type": "string"
+                },
+                "botIdentifier": {
+                    "type": "string"
+                },
+                "linker": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "verified": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "models.ChatScheme": {
+            "type": "object",
+            "properties": {
+                "botID": {
+                    "type": "string"
+                },
+                "botIdentifier": {
+                    "type": "string"
+                },
+                "creator": {
+                    "type": "string"
+                },
+                "hidden": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "linkOrIdInBot": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "verified": {
+                    "type": "boolean"
+                }
+            }
+        },
         "models.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -499,6 +723,14 @@
                     "type": "string"
                 },
                 "reason": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.SuccessResponse": {
+            "type": "object",
+            "properties": {
+                "status": {
                     "type": "string"
                 }
             }

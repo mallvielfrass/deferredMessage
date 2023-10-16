@@ -75,11 +75,75 @@ definitions:
       token:
         type: string
     type: object
+  chat.ChatRequest:
+    properties:
+      botId:
+        type: string
+      linkOrIdInBot:
+        type: string
+      name:
+        type: string
+    type: object
+  chat.ChatsListResponse:
+    properties:
+      chats:
+        items:
+          $ref: '#/definitions/models.ChatScheme'
+        type: array
+      count:
+        type: integer
+      offset:
+        type: integer
+    type: object
+  chat.CreateChatResponse:
+    properties:
+      chat:
+        $ref: '#/definitions/chat.createdChatType'
+    type: object
+  chat.createdChatType:
+    properties:
+      _id:
+        type: string
+      botId:
+        type: string
+      botIdentifier:
+        type: string
+      linker:
+        type: string
+      name:
+        type: string
+      verified:
+        type: boolean
+    type: object
+  models.ChatScheme:
+    properties:
+      botID:
+        type: string
+      botIdentifier:
+        type: string
+      creator:
+        type: string
+      hidden:
+        type: boolean
+      id:
+        type: string
+      linkOrIdInBot:
+        type: string
+      name:
+        type: string
+      verified:
+        type: boolean
+    type: object
   models.ErrorResponse:
     properties:
       error:
         type: string
       reason:
+        type: string
+    type: object
+  models.SuccessResponse:
+    properties:
+      status:
         type: string
     type: object
   noauth.CheckUserRequest:
@@ -193,6 +257,25 @@ paths:
       summary: Ping
       tags:
       - user
+  /api/bot:
+    get:
+      description: Retrieves a list of all bots for user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of bots retrieved successfully
+          schema:
+            $ref: '#/definitions/bot.BotStructArrayResponse'
+        "400":
+          description: Error getting bots
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get a list of all bots
+      tags:
+      - Bot
   /api/bot/:
     post:
       consumes:
@@ -267,6 +350,89 @@ paths:
       summary: Update an existing bot
       tags:
       - Bot
+  /api/chat:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of chats created by the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of chats
+          schema:
+            $ref: '#/definitions/chat.ChatsListResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get chats list
+      tags:
+      - Chat
+    post:
+      consumes:
+      - application/json
+      description: Creates a new chat with the provided chat details.
+      parameters:
+      - description: Chat details
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/chat.ChatRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Chat created successfully
+          schema:
+            $ref: '#/definitions/chat.CreateChatResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Create a chat
+      tags:
+      - Chat
+  /api/chat/{id}:
+    put:
+      consumes:
+      - application/json
+      description: Updates the settings of a chat identified by the provided ID.
+      parameters:
+      - description: Chat ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Chat name
+        in: body
+        name: name
+        schema:
+          type: string
+      - description: Link or ID in bot
+        in: body
+        name: linkOrIdInBot
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Settings updated successfully
+          schema:
+            $ref: '#/definitions/models.SuccessResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Update chat settings
+      tags:
+      - Chat
   /api/noauth/check:
     post:
       consumes:
@@ -349,25 +515,6 @@ paths:
       summary: Create a new user
       tags:
       - NoAuth
-  /bot:
-    get:
-      description: Retrieves a list of all bots for user
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: List of bots retrieved successfully
-          schema:
-            $ref: '#/definitions/bot.BotStructArrayResponse'
-        "400":
-          description: Error getting bots
-          schema:
-            $ref: '#/definitions/models.ErrorResponse'
-      security:
-      - Bearer: []
-      summary: Get a list of all bots
-      tags:
-      - Bot
   /tapi/example/helloworld:
     get:
       consumes:

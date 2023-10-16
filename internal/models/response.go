@@ -4,3 +4,6 @@ type ErrorResponse struct {
 	Error  string `json:"error"`
 	Reason string `json:"reason"`
 }
+type SuccessResponse struct {
+	Status string `json:"status"`
+}

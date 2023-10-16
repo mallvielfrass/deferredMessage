@@ -40,7 +40,7 @@ func ping(c *gin.Context) {
 // @Security Bearer
 // @Success 200 {object} BotStructArrayResponse "List of bots retrieved successfully"
 // @Failure 400 {object} models.ErrorResponse "Error getting bots"
-// @Router /bot [get]
+// @Router /api/bot [get]
 func (n botApi) HandleGetBotsList(c *gin.Context) {
 	bots, err := n.services.BotService.GetAllBots()
 	if err != nil {
