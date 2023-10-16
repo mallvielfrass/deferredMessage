@@ -1,11 +1,11 @@
 package handler
 
 import (
-	"deferredMessage/internal/api/admin"
-	"deferredMessage/internal/api/auth/user"
-	"deferredMessage/internal/api/bot"
-	"deferredMessage/internal/api/noauth"
-	"deferredMessage/internal/api/platform"
+	"deferredMessage/internal/handler/api/admin"
+	"deferredMessage/internal/handler/api/auth/user"
+	"deferredMessage/internal/handler/api/bot"
+	"deferredMessage/internal/handler/api/noauth"
+	"deferredMessage/internal/handler/api/platform"
 	"deferredMessage/internal/middleware"
 	"deferredMessage/internal/service"
 	"net/http"
