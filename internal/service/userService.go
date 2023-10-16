@@ -3,6 +3,8 @@ package service
 import (
 	"deferredMessage/internal/models"
 	"deferredMessage/internal/repository"
+	"deferredMessage/internal/utils"
+	"fmt"
 )
 
 type userService struct {
@@ -34,8 +36,34 @@ func (u *userService) CheckUserByMail(mail string) (bool, error) {
 }
 
 // CreateUser
-func (u *userService) CreateUser(name string, mail string, hash string) (models.UserScheme, error) {
+func (u *userService) CreateUser(name string, mail string, password string) (models.UserScheme, error) {
+	isExist, err := u.CheckUserByMail(mail)
+	if err != nil {
+		return models.UserScheme{}, err
+	}
+	if isExist {
+		return models.UserScheme{}, fmt.Errorf("user already exist")
+	}
+	hash, err := utils.HashPassword(password)
+	if err != nil {
+		return models.UserScheme{}, err
+	}
 	return u.repos.User.CreateUser(name, mail, hash)
+}
+
+// LoginUser
+func (u *userService) LoginUser(mail string, password string) (models.UserScheme, error) {
+	user, isExist, err := u.GetUserByMail(mail)
+	if err != nil {
+		return models.UserScheme{}, err
+	}
+	if !isExist {
+		return models.UserScheme{}, fmt.Errorf("user not found")
+	}
+	if !utils.CheckPasswordHash(password, user.Hash) {
+		return models.UserScheme{}, fmt.Errorf("user or password incorrect")
+	}
+	return user, nil
 }
 
 // GetUserByMail

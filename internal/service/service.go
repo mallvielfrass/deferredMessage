@@ -18,7 +18,8 @@ type UserService interface {
 	UserIsAdmin(userID string) (bool, error)
 	SetUserAdmin(userID string) (models.UserScheme, bool, error)
 	CheckUserByMail(mail string) (bool, error)
-	CreateUser(name string, mail string, hash string) (models.UserScheme, error)
+	CreateUser(name string, mail string, password string) (models.UserScheme, error)
+	LoginUser(mail string, password string) (models.UserScheme, error)
 	GetUserByMail(mail string) (models.UserScheme, bool, error)
 	GetUserByID(userID string) (models.UserScheme, bool, error)
 	AddChatToUser(chatID string, userID string) error

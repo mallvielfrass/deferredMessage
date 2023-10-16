@@ -4,7 +4,6 @@ import (
 	"deferredMessage/internal/middleware"
 	"deferredMessage/internal/models"
 	"deferredMessage/internal/service"
-	"deferredMessage/internal/utils"
 	"net/http"
 	"time"
 
@@ -82,31 +81,14 @@ func (n NoAuth) HandleRegisterUser(c *gin.Context) {
 		return
 	}
 
-	isExist, err := n.services.UserService.CheckUserByMail(body.Mail)
+	user, err := n.services.UserService.CreateUser(body.Name, body.Mail, body.Password)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
 			Error: err.Error()})
 		return
 	}
-	if isExist {
-		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
-			Error: "user already exist"})
-		return
-	}
-	hash, err := utils.HashPassword(body.Password)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
-			Error: err.Error()})
-		return
-	}
-	user, err := n.services.UserService.CreateUser(body.Name, body.Mail, hash)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
-			Error: err.Error()})
-		return
-	}
-	userIP := c.ClientIP()
-	session, err := n.services.SessionService.CreateSession(user.ID, time.Now().Add(time.Hour*24*31).Unix(), userIP)
+
+	session, err := n.services.SessionService.CreateSession(user.ID, time.Now().Add(time.Hour*24*31).Unix(), c.ClientIP())
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
 			Error: err.Error()})
@@ -146,23 +128,15 @@ func (n NoAuth) HandleLoginUser(c *gin.Context) {
 		return
 	}
 
-	user, isExist, err := n.services.UserService.GetUserByMail(body.Mail)
+	user, err := n.services.UserService.LoginUser(body.Mail, body.Password)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
-			Error: "user or password incorrect"})
+			Error: err.Error(),
+		})
 
 		return
 	}
-	if !isExist {
-		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
-			Error: "user or password incorrect"})
-		return
-	}
-	if !utils.CheckPasswordHash(body.Password, user.Hash) {
-		c.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse{
-			Error: "user or password incorrect"})
-		return
-	}
+
 	userIP := c.ClientIP()
 	session, err := n.services.SessionService.CreateSession(user.ID, time.Now().Add(time.Hour*24*31).Unix(), userIP)
 	if err != nil {
