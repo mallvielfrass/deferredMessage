@@ -141,6 +141,13 @@ definitions:
       reason:
         type: string
     type: object
+  models.PlatformScheme:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
   models.SuccessResponse:
     properties:
       status:
@@ -200,6 +207,31 @@ definitions:
     properties:
       mail:
         type: string
+      name:
+        type: string
+    type: object
+  platform.CreatePlatformRequest:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  platform.MessageResponse:
+    properties:
+      message:
+        example: pong
+        type: string
+    type: object
+  platform.PlatformListResponse:
+    properties:
+      platforms:
+        items:
+          $ref: '#/definitions/platform.PlatformResponse'
+        type: array
+    type: object
+  platform.PlatformResponse:
+    properties:
       name:
         type: string
     type: object
@@ -515,6 +547,65 @@ paths:
       summary: Create a new user
       tags:
       - NoAuth
+  /api/platform:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of all platforms.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of platforms
+          schema:
+            $ref: '#/definitions/platform.PlatformListResponse'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get platforms list
+      tags:
+      - Platform
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create platform request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/platform.CreatePlatformRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Platform created successfully
+          schema:
+            $ref: '#/definitions/models.PlatformScheme'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      tags:
+      - Platform
+  /api/platform/check:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: pong
+          schema:
+            $ref: '#/definitions/platform.MessageResponse'
+      security:
+      - Bearer: []
+      tags:
+      - Platform
   /tapi/example/helloworld:
     get:
       consumes:
