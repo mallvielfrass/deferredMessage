@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/exp/slices"
 )
 
@@ -133,6 +134,42 @@ func (c Chat) GetChatsByArrayID(chats []string) ([]models.ChatScheme, error) {
 		var chat ChatScheme
 		err := cur.Decode(&chat)
 		fmt.Printf("chat: %#v\n", chat)
+		if err != nil {
+			return nil, err
+		}
+		findedChats = append(findedChats, models.ChatScheme{
+			Name:          chat.Name,
+			ID:            chat.ID.Hex(),
+			LinkOrIdInBot: chat.LinkOrIdInBot,
+			BotIdentifier: chat.BotIdentifier,
+			BotID:         chat.BotID,
+			Verified:      chat.Verified,
+			Creator:       chat.Creator.Hex(),
+			Hidden:        chat.Hidden,
+		})
+	}
+	if err := cur.Err(); err != nil {
+		return nil, err
+	}
+	return findedChats, nil
+}
+
+// GetChatsListByCreatorWithLimits
+func (c Chat) GetChatsListByCreatorWithLimits(userId string, count int, offset int) ([]models.ChatScheme, error) {
+	userObjectID, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		return nil, err
+	}
+	opts := options.Find().SetSkip(int64(offset)).SetLimit(int64(count))
+	var findedChats []models.ChatScheme
+	cur, err := c.ct.Find(context.TODO(), bson.M{"creator": userObjectID}, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(context.TODO())
+	for cur.Next(context.TODO()) {
+		var chat ChatScheme
+		err := cur.Decode(&chat)
 		if err != nil {
 			return nil, err
 		}

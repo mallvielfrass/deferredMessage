@@ -39,6 +39,7 @@ type ChatService interface {
 	UpdateChat(chatId string, data map[string]interface{}) error
 	CreateChat(name string, botIdentifier string, botID string, userID string) (models.ChatScheme, error)
 	GetChatsByArrayID(chats []string) ([]models.ChatScheme, error)
+	GetChatsListByCreatorWithLimits(userId string, count int, offset int) ([]models.ChatScheme, error)
 }
 type Service struct {
 	repository *repository.Repository

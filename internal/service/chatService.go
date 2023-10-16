@@ -32,3 +32,9 @@ func (c chatService) UpdateChat(chatId string, data map[string]interface{}) erro
 func (c chatService) GetChatByID(id string) (models.ChatScheme, bool, error) {
 	return c.repos.Chat.GetChatByID(id)
 }
+
+// GetChatsListByCreatorWithLimits(userId string, count int, offset int) ([]models.ChatScheme, error)
+func (c chatService) GetChatsListByCreatorWithLimits(userId string, int, offset int) ([]models.ChatScheme, error) {
+
+	return c.repos.Chat.GetChatsListByCreatorWithLimits(userId, int, offset)
+}
