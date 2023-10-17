@@ -2,11 +2,6 @@ package repository
 
 import (
 	"context"
-	"deferredMessage/internal/repository/mongo/bot"
-	"deferredMessage/internal/repository/mongo/chat"
-	"deferredMessage/internal/repository/mongo/platform"
-	"deferredMessage/internal/repository/mongo/session"
-	"deferredMessage/internal/repository/mongo/user"
 	"fmt"
 	"log"
 
@@ -51,15 +46,6 @@ func ConnectDB(url, dbname string) (DB, error) {
 	return databaseInstance, nil
 	//client.Database("GoToster").Collection("tasks")
 	//collection = client.Database("GoToster") //.Collection("tasks")
-}
-func (db *DB) mountSchemes() {
-	db.Collections = &Collection{
-		Chat:     chat.Init(db.Driver),
-		User:     user.Init(db.Driver),
-		Session:  session.Init(db.Driver),
-		Bot:      bot.Init(db.Driver),
-		Platform: platform.Init(db.Driver),
-	}
 }
 
 func (db *DB) Disconnect() {
