@@ -12,12 +12,17 @@ import (
 type Sender interface {
 	Send(msg Message) error
 }
+type Pool interface {
+	GetMsgList() []Message
+}
 type Clocker struct {
 	messages            []Message
 	messagesBuffer      chan Message
 	deleteMessageBuffer chan Message
 	sender              Sender
+	pool                Pool
 	ticker              *ticker.T
+	poolTicker          *ticker.T
 	done                chan bool
 	mutex               sync.Mutex
 }
@@ -36,6 +41,7 @@ func NewClocker(sender Sender) *Clocker {
 func (c *Clocker) Start() {
 	fmt.Println("Clocker started")
 	c.ticker = ticker.New(100 * time.Millisecond)
+	c.poolTicker = ticker.New(10 * time.Minute)
 	go c.tick()
 }
 func (c *Clocker) handleMessages(messages []Message) {
@@ -55,8 +61,22 @@ func (c *Clocker) checkMsgTime() {
 	c.mutex.Unlock()
 	c.ticker.Resume()
 }
+
+// synsPool
+func (c *Clocker) synsPool() {
+	c.ticker.Pause()
+	c.mutex.Lock()
+	newMsgPool := c.pool.GetMsgList()
+	sort.Slice(newMsgPool, func(i, j int) bool {
+		return newMsgPool[i].Time.Before(newMsgPool[j].Time)
+	})
+	c.messages = newMsgPool
+	c.mutex.Unlock()
+	c.ticker.Resume()
+}
 func (c *Clocker) tick() {
 	c.ticker.Resume()
+	c.poolTicker.Resume()
 	for {
 		select {
 		case val := <-c.messagesBuffer:
@@ -68,6 +88,11 @@ func (c *Clocker) tick() {
 		case <-c.done:
 			fmt.Println("Clocker stopped")
 			return
+		case <-c.poolTicker.Ticks():
+			fmt.Println("pool Tick")
+			if len(c.messages) > 0 {
+				c.synsPool()
+			}
 		case t := <-c.ticker.Ticks():
 			fmt.Println("Tick at", t)
 			c.checkMsgTime()
@@ -80,6 +105,7 @@ func (c *Clocker) tick() {
 func (c *Clocker) Stop() {
 	fmt.Println("Stopping clocker")
 	c.ticker.Stop()
+	c.poolTicker.Stop()
 	c.done <- true
 	fmt.Println("Clocker stopped")
 }
