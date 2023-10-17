@@ -7,3 +7,6 @@ type ErrorResponse struct {
 type SuccessResponse struct {
 	Status string `json:"status"`
 }
+type PingMessageResponse struct {
+	Message string `json:"message" example:"pong"`
+}

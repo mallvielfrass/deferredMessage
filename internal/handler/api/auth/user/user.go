@@ -2,6 +2,7 @@ package user
 
 import (
 	"deferredMessage/internal/middleware"
+	"deferredMessage/internal/models"
 	"deferredMessage/internal/service"
 	"net/http"
 
@@ -28,10 +29,10 @@ func Init(services *service.Service, middleware *middleware.Middleware) userApi 
 // @Tags user
 // @Security Bearer
 // @Produce json
-// @Success 200 {object}  MessageResponse
+// @Success 200 {object}  models.PingMessageResponse
 // @Router /api/auth/user/ping [get]
 func ping(c *gin.Context) {
-	c.JSON(http.StatusOK, MessageResponse{
+	c.JSON(http.StatusOK, models.PingMessageResponse{
 		Message: "pong",
 	})
 }
