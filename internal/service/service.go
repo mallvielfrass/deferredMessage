@@ -43,6 +43,9 @@ type ChatService interface {
 	GetChatsByArrayID(chats []string) ([]models.ChatScheme, error)
 	GetChatsListByCreatorWithLimits(userId string, count int, offset int) ([]models.ChatScheme, error)
 }
+type MessageService interface {
+	GetListOfAllMessages(creatorId string, offset int, limit int) ([]models.Message, error)
+}
 type PoolService interface {
 	GetMsgList(period time.Duration) []models.Message
 }
@@ -60,6 +63,7 @@ type Service struct {
 	ChatService
 	PoolService
 	SenderService
+	MessageService
 }
 
 func NewService(repos *repository.Repository) *Service {
@@ -73,6 +77,7 @@ func NewService(repos *repository.Repository) *Service {
 		ChatService:          NewChatService(repos),
 		PoolService:          NewPoolService(repos),
 		SenderService:        NewSenderService(repos),
+		MessageService:       NewMessageService(repos),
 	}
 
 	return service

@@ -147,3 +147,36 @@ func (c Message) SetIsSended(id string) error {
 	}
 	return nil
 }
+func (c Message) GetListOfAllMessages(creatorId string, offset int, limit int) ([]models.Message, error) {
+	creatorObjectID, err := primitive.ObjectIDFromHex(creatorId)
+	if err != nil {
+		return []models.Message{}, err
+	}
+	var msgList []models.Message
+	cur, err := c.ct.Find(context.TODO(), bson.M{"creator": creatorObjectID})
+	if err != nil {
+		return []models.Message{}, err
+	}
+	defer cur.Close(context.TODO())
+	for cur.Next(context.TODO()) {
+		var msg MessageScheme
+		err := cur.Decode(&msg)
+		if err != nil {
+			return []models.Message{}, err
+		}
+		msgList = append(msgList, models.Message{
+			Message:     msg.Message,
+			Time:        msg.Time,
+			Id:          msg.ID.Hex(),
+			ChatId:      msg.ChatId.Hex(),
+			CreatorId:   msg.CreatorId.Hex(),
+			IsProcessed: msg.IsProcessed,
+			IsSended:    msg.IsSended,
+			Error:       msg.Error,
+		})
+	}
+	if err := cur.Err(); err != nil {
+		return []models.Message{}, err
+	}
+	return msgList, nil
+}

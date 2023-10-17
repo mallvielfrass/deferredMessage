@@ -52,6 +52,7 @@ type Message interface {
 	SetMessageIsProcessed(id string) error
 	SetMessageError(id string, errMsg string) error
 	SetIsSended(id string) error
+	GetListOfAllMessages(creatorId string, offset int, limit int) ([]models.Message, error)
 }
 type Repository struct {
 	Chat     Chat
