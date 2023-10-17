@@ -3,6 +3,8 @@ package clocker
 import (
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func Test_binarySearchMsgWithTime(t *testing.T) {
@@ -96,6 +98,89 @@ func Test_binarySearchMsgWithTime(t *testing.T) {
 			after := tt.args.messages[index:]
 			if len(after) != tt.afterLength {
 				t.Errorf("after = %v, want %v", after, tt.afterLength)
+			}
+		})
+	}
+}
+
+func Test_findAndRemoveMessage(t *testing.T) {
+	type args struct {
+		messages []Message
+		msg      Message
+	}
+
+	tests := []struct {
+		name string
+		args args
+		want []Message
+	}{
+		{
+			name: "emptyArray",
+			args: args{
+				messages: []Message{},
+				msg:      Message{},
+			},
+			want: []Message{},
+		},
+		{
+			name: "msgNotInArray",
+			args: args{
+				messages: []Message{
+					{
+						Message: "hello1",
+						Time:    time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC),
+						Id:      "100000",
+					},
+				},
+				msg: Message{
+					Message: "hello2",
+					Time:    time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC),
+					Id:      "100001",
+				},
+			},
+			want: []Message{
+				{
+					Message: "hello1",
+					Time:    time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC),
+					Id:      "100000",
+				},
+			},
+		},
+		{
+			name: "removeMsgFromArray",
+			args: args{
+				messages: []Message{
+					{
+						Message: "hello1",
+						Time:    time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC),
+						Id:      "100000",
+					},
+					{
+						Message: "hello2",
+						Time:    time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC),
+						Id:      "100001",
+					},
+				},
+				msg: Message{
+					Message: "hello2",
+					Time:    time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC),
+					Id:      "100001",
+				},
+			},
+			want: []Message{
+				{
+					Message: "hello1",
+					Time:    time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC),
+					Id:      "100000",
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := findAndRemoveMessage(tt.args.messages, tt.args.msg)
+			if !assert.ElementsMatch(t, tt.want, got) {
+				t.Errorf("findAndRemoveMessage() = %v, want %v", got, tt.want)
 			}
 		})
 	}

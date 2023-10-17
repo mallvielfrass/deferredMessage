@@ -16,3 +16,13 @@ func binarySearchMsgWithTime(messages []Message, time time.Time) ([]Message, int
 	//fmt.Printf("lowIndex: %v, high: %v\n", lowIndex, high)
 	return messages[:lowIndex], lowIndex
 }
+func findAndRemoveMessage(messages []Message, msg Message) []Message {
+	var newArray []Message
+	for i := 0; i < len(messages); i++ {
+		if messages[i].Id == msg.Id {
+			newArray = append(messages[:i], messages[i+1:]...)
+			return newArray
+		}
+	}
+	return messages
+}
