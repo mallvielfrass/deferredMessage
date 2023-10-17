@@ -48,6 +48,10 @@ type Session interface {
 }
 type Message interface {
 	GetMessagesList(tm time.Time) ([]models.Message, error)
+	GetMessageByID(id string) (models.Message, bool, error)
+	SetMessageIsProcessed(id string) error
+	SetMessageError(id string, errMsg string) error
+	SetIsSended(id string) error
 }
 type Repository struct {
 	Chat     Chat

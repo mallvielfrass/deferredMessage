@@ -85,3 +85,65 @@ func (c Message) GetMessagesList(tm time.Time) ([]models.Message, error) {
 	}
 	return msgList, nil
 }
+func (c Message) GetMessageByID(id string) (models.Message, bool, error) {
+	idObjectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return models.Message{}, false, err
+	}
+	var findedMessage MessageScheme
+	err = Message{}.ct.FindOne(context.TODO(), bson.M{"_id": idObjectID}).Decode(&findedMessage)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return models.Message{}, false, nil
+		}
+		return models.Message{}, false, err
+	}
+	return models.Message{
+		Message:     findedMessage.Message,
+		Time:        findedMessage.Time,
+		Id:          findedMessage.ID.Hex(),
+		ChatId:      findedMessage.ChatId.Hex(),
+		CreatorId:   findedMessage.CreatorId.Hex(),
+		IsProcessed: findedMessage.IsProcessed,
+		IsSended:    findedMessage.IsSended,
+		Error:       findedMessage.Error,
+	}, true, nil
+}
+
+func (c Message) SetMessageIsProcessed(id string) error {
+	idObjectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	_, err = c.ct.UpdateOne(context.TODO(), bson.M{"_id": idObjectID}, bson.M{"$set": bson.M{"isprocessed": true}})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// SetMessageError
+func (c Message) SetMessageError(id string, errMsg string) error {
+	idObjectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	_, err = c.ct.UpdateOne(context.TODO(), bson.M{"_id": idObjectID}, bson.M{"$set": bson.M{"error": errMsg}})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// SetIsSended
+func (c Message) SetIsSended(id string) error {
+	idObjectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	_, err = c.ct.UpdateOne(context.TODO(), bson.M{"_id": idObjectID}, bson.M{"$set": bson.M{"issended": true}})
+	if err != nil {
+		return err
+	}
+	return nil
+}
