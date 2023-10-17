@@ -46,7 +46,7 @@ type ChatService interface {
 type PoolService interface {
 	GetMsgList(period time.Duration) []models.Message
 }
-type Sender interface {
+type SenderService interface {
 	Send(msg models.Message) error
 }
 
@@ -59,10 +59,11 @@ type Service struct {
 	BotService
 	ChatService
 	PoolService
+	SenderService
 }
 
 func NewService(repos *repository.Repository) *Service {
-	return &Service{
+	service := &Service{
 		repository:           repos,
 		SessionService:       NewSessionService(repos),
 		AuthorizationService: NewAuthService(repos),
@@ -71,5 +72,8 @@ func NewService(repos *repository.Repository) *Service {
 		BotService:           NewBotService(repos),
 		ChatService:          NewChatService(repos),
 		PoolService:          NewPoolService(repos),
+		SenderService:        NewSenderService(repos),
 	}
+
+	return service
 }
