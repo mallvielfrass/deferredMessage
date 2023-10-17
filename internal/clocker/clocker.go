@@ -28,12 +28,13 @@ type Clocker struct {
 	mutex               sync.Mutex
 }
 
-func NewClocker(sender Sender) *Clocker {
+func NewClocker(sender Sender, pool Pool) *Clocker {
 	return &Clocker{
 		messages:            []models.Message{},
 		messagesBuffer:      make(chan models.Message, 100),
 		deleteMessageBuffer: make(chan models.Message, 100),
 		sender:              sender,
+		pool:                pool,
 		done:                make(chan bool),
 	}
 }
