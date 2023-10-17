@@ -5,6 +5,7 @@ import (
 	"deferredMessage/internal/handler/api/admin"
 	"deferredMessage/internal/handler/api/auth/user"
 	"deferredMessage/internal/handler/api/bot"
+	"deferredMessage/internal/handler/api/message"
 	"deferredMessage/internal/handler/api/noauth"
 	"deferredMessage/internal/handler/api/platform"
 	"deferredMessage/internal/middleware"
@@ -76,6 +77,7 @@ func (h *Handler) newRouter() *gin.Engine {
 	platform.Init(h.services, h.middleware).Router(authUserApi.Group("/platform"))
 	bot.Init(h.services, h.middleware).Router(authUserApi.Group("/bot"))
 	admin.Init(h.services, h.middleware).Router(authUserApi.Group("/admin"))
+	message.Init(h.services, h.middleware, h.clock).Router(authUserApi.Group("/message"))
 	return router
 }
 func (h *Handler) Run(port string) error {

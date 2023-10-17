@@ -60,6 +60,51 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/auth/messages": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Retrieves a list of all messages based on the provided limits.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get list of all messages",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Number of messages to retrieve (default is 10)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Offset for pagination (default is 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of all messages",
+                        "schema": {
+                            "$ref": "#/definitions/message.MessageListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Error response",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/auth/user/ping": {
             "get": {
                 "security": [
@@ -82,7 +127,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.MessageResponse"
+                            "$ref": "#/definitions/models.PingMessageResponse"
                         }
                     }
                 }
@@ -796,6 +841,17 @@ const docTemplate = `{
                 }
             }
         },
+        "message.MessageListResponse": {
+            "type": "object",
+            "properties": {
+                "messages": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Message"
+                    }
+                }
+            }
+        },
         "models.ChatScheme": {
             "type": "object",
             "properties": {
@@ -833,6 +889,44 @@ const docTemplate = `{
                 },
                 "reason": {
                     "type": "string"
+                }
+            }
+        },
+        "models.Message": {
+            "type": "object",
+            "properties": {
+                "chatId": {
+                    "type": "string"
+                },
+                "creatorId": {
+                    "type": "string"
+                },
+                "error": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "isProcessed": {
+                    "type": "boolean"
+                },
+                "isSended": {
+                    "type": "boolean"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.PingMessageResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "pong"
                 }
             }
         },
@@ -978,15 +1072,6 @@ const docTemplate = `{
             "properties": {
                 "name": {
                     "type": "string"
-                }
-            }
-        },
-        "user.MessageResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string",
-                    "example": "pong"
                 }
             }
         }

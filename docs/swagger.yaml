@@ -115,6 +115,13 @@ definitions:
       verified:
         type: boolean
     type: object
+  message.MessageListResponse:
+    properties:
+      messages:
+        items:
+          $ref: '#/definitions/models.Message'
+        type: array
+    type: object
   models.ChatScheme:
     properties:
       botID:
@@ -139,6 +146,31 @@ definitions:
       error:
         type: string
       reason:
+        type: string
+    type: object
+  models.Message:
+    properties:
+      chatId:
+        type: string
+      creatorId:
+        type: string
+      error:
+        type: string
+      id:
+        type: string
+      isProcessed:
+        type: boolean
+      isSended:
+        type: boolean
+      message:
+        type: string
+      time:
+        type: string
+    type: object
+  models.PingMessageResponse:
+    properties:
+      message:
+        example: pong
         type: string
     type: object
   models.PlatformScheme:
@@ -235,12 +267,6 @@ definitions:
       name:
         type: string
     type: object
-  user.MessageResponse:
-    properties:
-      message:
-        example: pong
-        type: string
-    type: object
 info:
   contact: {}
 paths:
@@ -272,6 +298,34 @@ paths:
       summary: Set a user as admin
       tags:
       - Admin
+  /api/auth/messages:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves a list of all messages based on the provided limits.
+      parameters:
+      - description: Number of messages to retrieve (default is 10)
+        in: query
+        name: limit
+        type: integer
+      - description: Offset for pagination (default is 0)
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of all messages
+          schema:
+            $ref: '#/definitions/message.MessageListResponse'
+        "400":
+          description: Error response
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Get list of all messages
   /api/auth/user/ping:
     get:
       consumes:
@@ -283,7 +337,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/user.MessageResponse'
+            $ref: '#/definitions/models.PingMessageResponse'
       security:
       - Bearer: []
       summary: Ping
