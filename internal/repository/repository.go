@@ -4,9 +4,11 @@ import (
 	"deferredMessage/internal/models"
 	"deferredMessage/internal/repository/mongo/bot"
 	"deferredMessage/internal/repository/mongo/chat"
+	"deferredMessage/internal/repository/mongo/message"
 	"deferredMessage/internal/repository/mongo/platform"
 	"deferredMessage/internal/repository/mongo/session"
 	"deferredMessage/internal/repository/mongo/user"
+	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -44,12 +46,16 @@ type Session interface {
 	GetSessionByID(id string) (models.SessionScheme, bool, error)
 	CreateSession(UserID string, expire int64, ip string) (models.SessionScheme, error)
 }
+type Message interface {
+	GetMessagesList(tm time.Time) ([]models.Message, error)
+}
 type Repository struct {
 	Chat     Chat
 	Platform Platform
 	Bot      Bot
 	User     User
 	Session  Session
+	Message  Message
 }
 
 func NewRepository(driver *mongo.Database) *Repository {
@@ -59,5 +65,6 @@ func NewRepository(driver *mongo.Database) *Repository {
 		Bot:      bot.Init(driver),
 		User:     user.Init(driver),
 		Session:  session.Init(driver),
+		Message:  message.Init(driver),
 	}
 }
