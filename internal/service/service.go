@@ -3,6 +3,7 @@ package service
 import (
 	"deferredMessage/internal/models"
 	"deferredMessage/internal/repository"
+	"time"
 )
 
 type AuthorizationService interface {
@@ -42,6 +43,13 @@ type ChatService interface {
 	GetChatsByArrayID(chats []string) ([]models.ChatScheme, error)
 	GetChatsListByCreatorWithLimits(userId string, count int, offset int) ([]models.ChatScheme, error)
 }
+type PoolService interface {
+	GetMsgList(period time.Duration) []models.Message
+}
+type Sender interface {
+	Send(msg models.Message) error
+}
+
 type Service struct {
 	repository *repository.Repository
 	SessionService
@@ -50,6 +58,7 @@ type Service struct {
 	PlatformService
 	BotService
 	ChatService
+	PoolService
 }
 
 func NewService(repos *repository.Repository) *Service {
@@ -61,5 +70,6 @@ func NewService(repos *repository.Repository) *Service {
 		PlatformService:      NewPlatformService(repos),
 		BotService:           NewBotService(repos),
 		ChatService:          NewChatService(repos),
+		PoolService:          NewPoolService(repos),
 	}
 }
