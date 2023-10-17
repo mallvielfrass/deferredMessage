@@ -3,6 +3,7 @@ package internal
 import (
 	"deferredMessage/config"
 	_ "deferredMessage/docs"
+	"deferredMessage/internal/clocker"
 	"deferredMessage/internal/handler"
 	"deferredMessage/internal/middleware"
 	"deferredMessage/internal/repository"
@@ -42,8 +43,10 @@ func (app DefferedMessageApp) Run() error {
 	//	fmt.Printf("config: %#v\n", app.Config)
 	repos := repository.NewRepository(db.Driver)
 	services := service.NewService(repos)
+	clock := clocker.NewClocker(services.SenderService, services.PoolService)
+	clock.Start()
 	middlewares := middleware.InitMiddleware(services)
-	handler := handler.NewHandler(services, middlewares)
+	handler := handler.NewHandler(services, middlewares, clock)
 	err = handler.Run(app.Config.HostPort)
 
 	return err

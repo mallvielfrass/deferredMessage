@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"deferredMessage/internal/clocker"
 	"deferredMessage/internal/handler/api/admin"
 	"deferredMessage/internal/handler/api/auth/user"
 	"deferredMessage/internal/handler/api/bot"
@@ -18,12 +19,14 @@ import (
 type Handler struct {
 	services   *service.Service
 	middleware *middleware.Middleware
+	clock      *clocker.Clocker
 }
 
-func NewHandler(services *service.Service, middleware *middleware.Middleware) *Handler {
+func NewHandler(services *service.Service, middleware *middleware.Middleware, clock *clocker.Clocker) *Handler {
 	return &Handler{
 		services:   services,
 		middleware: middleware,
+		clock:      clock,
 	}
 }
 
