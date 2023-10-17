@@ -1,6 +1,7 @@
 package clocker
 
 import (
+	"deferredMessage/internal/models"
 	"fmt"
 	"sort"
 	"sync"
@@ -10,15 +11,15 @@ import (
 )
 
 type Sender interface {
-	Send(msg Message) error
+	Send(msg models.Message) error
 }
 type Pool interface {
-	GetMsgList() []Message
+	GetMsgList(period time.Duration) []models.Message
 }
 type Clocker struct {
-	messages            []Message
-	messagesBuffer      chan Message
-	deleteMessageBuffer chan Message
+	messages            []models.Message
+	messagesBuffer      chan models.Message
+	deleteMessageBuffer chan models.Message
 	sender              Sender
 	pool                Pool
 	ticker              *ticker.T
@@ -29,9 +30,9 @@ type Clocker struct {
 
 func NewClocker(sender Sender) *Clocker {
 	return &Clocker{
-		messages:            []Message{},
-		messagesBuffer:      make(chan Message, 100),
-		deleteMessageBuffer: make(chan Message, 100),
+		messages:            []models.Message{},
+		messagesBuffer:      make(chan models.Message, 100),
+		deleteMessageBuffer: make(chan models.Message, 100),
 		sender:              sender,
 		done:                make(chan bool),
 	}
@@ -44,7 +45,7 @@ func (c *Clocker) Start() {
 	c.poolTicker = ticker.New(10 * time.Minute)
 	go c.tick()
 }
-func (c *Clocker) handleMessages(messages []Message) {
+func (c *Clocker) handleMessages(messages []models.Message) {
 	for _, msg := range messages {
 		go c.sender.Send(msg)
 	}
@@ -66,7 +67,7 @@ func (c *Clocker) checkMsgTime() {
 func (c *Clocker) synsPool() {
 	c.ticker.Pause()
 	c.mutex.Lock()
-	newMsgPool := c.pool.GetMsgList()
+	newMsgPool := c.pool.GetMsgList(10 * time.Minute)
 	sort.Slice(newMsgPool, func(i, j int) bool {
 		return newMsgPool[i].Time.Before(newMsgPool[j].Time)
 	})
@@ -109,7 +110,7 @@ func (c *Clocker) Stop() {
 	c.done <- true
 	fmt.Println("Clocker stopped")
 }
-func (c *Clocker) addMessage(msg Message) {
+func (c *Clocker) addMessage(msg models.Message) {
 	c.ticker.Pause()
 	c.mutex.Lock()
 	c.messages = append(c.messages, msg)
@@ -121,7 +122,7 @@ func (c *Clocker) addMessage(msg Message) {
 }
 
 // delete message
-func (c *Clocker) deleteMessage(msg Message) {
+func (c *Clocker) deleteMessage(msg models.Message) {
 	c.ticker.Pause()
 	c.mutex.Lock()
 	c.messages = findAndRemoveMessage(c.messages, msg)
@@ -131,11 +132,11 @@ func (c *Clocker) deleteMessage(msg Message) {
 
 // External func
 // add message
-func (c *Clocker) AddMessage(msg Message) {
+func (c *Clocker) AddMessage(msg models.Message) {
 	c.messagesBuffer <- msg
 }
 
 // Delete message
-func (c *Clocker) DeleteMessage(msg Message) {
+func (c *Clocker) DeleteMessage(msg models.Message) {
 	c.deleteMessageBuffer <- msg
 }

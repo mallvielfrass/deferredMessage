@@ -1,6 +1,7 @@
 package clocker
 
 import (
+	"deferredMessage/internal/models"
 	"testing"
 	"time"
 
@@ -9,7 +10,7 @@ import (
 
 func Test_binarySearchMsgWithTime(t *testing.T) {
 	type args struct {
-		messages []Message
+		messages []models.Message
 		time     time.Time
 	}
 	tests := []struct {
@@ -21,7 +22,7 @@ func Test_binarySearchMsgWithTime(t *testing.T) {
 		{
 			name: "binarySearchMsgWithTime",
 			args: args{
-				messages: []Message{
+				messages: []models.Message{
 					{
 						Message: "hello",
 						Time:    time.Now().Add(-1 * time.Second),
@@ -43,7 +44,7 @@ func Test_binarySearchMsgWithTime(t *testing.T) {
 		{
 			name: "binarySearchMsgWithTimeAfter",
 			args: args{
-				messages: []Message{
+				messages: []models.Message{
 					{
 						Message: "hello",
 						Time:    time.Now().Add(5 * time.Second),
@@ -61,7 +62,7 @@ func Test_binarySearchMsgWithTime(t *testing.T) {
 		{
 			name: "binarySearchMsgWithTimeBefore",
 			args: args{
-				messages: []Message{
+				messages: []models.Message{
 					{
 						Message: "hello",
 						Time:    time.Now().Add(-1 * time.Second),
@@ -79,7 +80,7 @@ func Test_binarySearchMsgWithTime(t *testing.T) {
 		{
 			name: "binarySearchMsgEmpty",
 			args: args{
-				messages: []Message{},
+				messages: []models.Message{},
 				time:     time.Now(),
 			},
 			wantLength:  0,
@@ -105,40 +106,40 @@ func Test_binarySearchMsgWithTime(t *testing.T) {
 
 func Test_findAndRemoveMessage(t *testing.T) {
 	type args struct {
-		messages []Message
-		msg      Message
+		messages []models.Message
+		msg      models.Message
 	}
 
 	tests := []struct {
 		name string
 		args args
-		want []Message
+		want []models.Message
 	}{
 		{
 			name: "emptyArray",
 			args: args{
-				messages: []Message{},
-				msg:      Message{},
+				messages: []models.Message{},
+				msg:      models.Message{},
 			},
-			want: []Message{},
+			want: []models.Message{},
 		},
 		{
 			name: "msgNotInArray",
 			args: args{
-				messages: []Message{
+				messages: []models.Message{
 					{
 						Message: "hello1",
 						Time:    time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC),
 						Id:      "100000",
 					},
 				},
-				msg: Message{
+				msg: models.Message{
 					Message: "hello2",
 					Time:    time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC),
 					Id:      "100001",
 				},
 			},
-			want: []Message{
+			want: []models.Message{
 				{
 					Message: "hello1",
 					Time:    time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC),
@@ -149,7 +150,7 @@ func Test_findAndRemoveMessage(t *testing.T) {
 		{
 			name: "removeMsgFromArray",
 			args: args{
-				messages: []Message{
+				messages: []models.Message{
 					{
 						Message: "hello1",
 						Time:    time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC),
@@ -161,13 +162,13 @@ func Test_findAndRemoveMessage(t *testing.T) {
 						Id:      "100001",
 					},
 				},
-				msg: Message{
+				msg: models.Message{
 					Message: "hello2",
 					Time:    time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC),
 					Id:      "100001",
 				},
 			},
-			want: []Message{
+			want: []models.Message{
 				{
 					Message: "hello1",
 					Time:    time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC),
@@ -180,7 +181,7 @@ func Test_findAndRemoveMessage(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got := findAndRemoveMessage(tt.args.messages, tt.args.msg)
 			if !assert.ElementsMatch(t, tt.want, got) {
-				t.Errorf("findAndRemoveMessage() = %v, want %v", got, tt.want)
+				t.Errorf("findAndRemovemodels.Message() = %v, want %v", got, tt.want)
 			}
 		})
 	}

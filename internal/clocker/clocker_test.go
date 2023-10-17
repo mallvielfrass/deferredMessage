@@ -1,6 +1,7 @@
 package clocker
 
 import (
+	"deferredMessage/internal/models"
 	"fmt"
 	"testing"
 	"time"
@@ -9,7 +10,7 @@ import (
 type testService struct {
 }
 
-func (s testService) Send(msg Message) error {
+func (s testService) Send(msg models.Message) error {
 	fmt.Printf("Message: %s\n", msg.Message)
 	return nil
 }
@@ -18,7 +19,7 @@ func TestClocker(t *testing.T) {
 	tserv := testService{}
 	clock := NewClocker(tserv)
 	clock.Start()
-	clock.AddMessage(Message{
+	clock.AddMessage(models.Message{
 		Message: "hello",
 		Time:    time.Now(),
 	})
