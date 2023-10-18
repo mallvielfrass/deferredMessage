@@ -122,6 +122,24 @@ definitions:
           $ref: '#/definitions/models.Message'
         type: array
     type: object
+  message.MessageResponse:
+    properties:
+      message:
+        $ref: '#/definitions/models.Message'
+    type: object
+  message.NewMessageRequest:
+    properties:
+      chatId:
+        type: string
+      message:
+        type: string
+      time:
+        type: integer
+    required:
+    - chatId
+    - message
+    - time
+    type: object
   models.ChatScheme:
     properties:
       botID:
@@ -326,6 +344,29 @@ paths:
       security:
       - Bearer: []
       summary: Get list of all messages
+    post:
+      consumes:
+      - application/json
+      description: Creates a new message.
+      parameters:
+      - description: Message
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/message.NewMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Message
+          schema:
+            $ref: '#/definitions/message.MessageResponse'
+        "400":
+          description: Error response
+          schema:
+            $ref: '#/definitions/models.ErrorResponse'
+      summary: Create new message
   /api/auth/user/ping:
     get:
       consumes:

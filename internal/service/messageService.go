@@ -17,3 +17,6 @@ func NewMessageService(repos *repository.Repository) *messageService {
 func (m messageService) GetListOfAllMessages(creatorId string, offset int, limit int) ([]models.Message, error) {
 	return m.repos.Message.GetListOfAllMessages(creatorId, offset, limit)
 }
+func (m messageService) CreateNewMessage(creatorId string, msg models.Message) (models.Message, error) {
+	return m.repos.Message.CreateNewMessage(creatorId, msg)
+}

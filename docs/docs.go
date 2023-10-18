@@ -103,6 +103,41 @@ const docTemplate = `{
                         }
                     }
                 }
+            },
+            "post": {
+                "description": "Creates a new message.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Create new message",
+                "parameters": [
+                    {
+                        "description": "Message",
+                        "name": "message",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/message.NewMessageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Message",
+                        "schema": {
+                            "$ref": "#/definitions/message.MessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Error response",
+                        "schema": {
+                            "$ref": "#/definitions/models.ErrorResponse"
+                        }
+                    }
+                }
             }
         },
         "/api/auth/user/ping": {
@@ -849,6 +884,33 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/models.Message"
                     }
+                }
+            }
+        },
+        "message.MessageResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "$ref": "#/definitions/models.Message"
+                }
+            }
+        },
+        "message.NewMessageRequest": {
+            "type": "object",
+            "required": [
+                "chatId",
+                "message",
+                "time"
+            ],
+            "properties": {
+                "chatId": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "integer"
                 }
             }
         },

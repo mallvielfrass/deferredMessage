@@ -8,6 +8,7 @@ import (
 	"deferredMessage/internal/utils/dto"
 	sessionutils "deferredMessage/internal/utils/sessionUtils"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,6 +31,41 @@ func (h *messageApi) ping(c *gin.Context) {
 	c.JSON(http.StatusOK, models.PingMessageResponse{
 		Message: "pong",
 	})
+}
+
+// HandleCreateNewMessage handles the API endpoint for creating a new message.
+// @Summary Create new message
+// @Description Creates a new message.
+// @Accept json
+// @Produce json
+// @Param message body NewMessageRequest true "Message"
+// @Success 200 {object} MessageResponse "Message"
+// @Failure 400 {object} models.ErrorResponse "Error response"
+// @Router /api/auth/messages [post]
+func (h *messageApi) HandleCreateNewMessage(c *gin.Context) {
+	session, err := sessionutils.GetSession(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: err.Error()})
+		return
+	}
+	var msg NewMessageRequest
+	err = c.BindJSON(&msg)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: err.Error()})
+		return
+	}
+	//convert int64 to time
+
+	tm := time.Unix(msg.Time, 0)
+	message, err := h.services.MessageService.CreateNewMessage(session.UserID, models.Message{Message: msg.Message, ChatId: msg.ChatId, Time: tm})
+	if err != nil {
+		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, MessageResponse{
+		Message: message,
+	})
+
 }
 
 // HandleListOfAllMessages handles the API endpoint for getting a list of all messages.

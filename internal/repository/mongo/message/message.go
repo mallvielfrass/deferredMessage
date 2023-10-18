@@ -180,3 +180,53 @@ func (c Message) GetListOfAllMessages(creatorId string, offset int, limit int) (
 	}
 	return msgList, nil
 }
+func (c Message) getMessageByObjectID(id primitive.ObjectID) (MessageScheme, error) {
+	var msg MessageScheme
+	err := c.ct.FindOne(context.TODO(), bson.M{"_id": id}).Decode(&msg)
+	if err != nil {
+		return MessageScheme{}, err
+	}
+	return msg, nil
+}
+func (c Message) CreateNewMessage(creatorId string, msg models.Message) (models.Message, error) {
+	creatorObjectID, err := primitive.ObjectIDFromHex(creatorId)
+	if err != nil {
+		return models.Message{}, err
+	}
+	chatIdObjectID, err := primitive.ObjectIDFromHex(msg.ChatId)
+	if err != nil {
+		return models.Message{}, err
+	}
+	res, err := c.ct.InsertOne(context.TODO(), bson.M{
+		"message":     msg.Message,
+		"time":        msg.Time,
+		"creator":     creatorObjectID,
+		"chat":        chatIdObjectID,
+		"isprocessed": false,
+		"issended":    false,
+		"error":       "",
+	})
+	if err != nil {
+		return models.Message{}, err
+	}
+	idObjectID, ok := res.InsertedID.(primitive.ObjectID)
+	if !ok {
+		return models.Message{}, err
+	}
+	findedMsg, err := c.getMessageByObjectID(idObjectID)
+	if err != nil {
+		return models.Message{}, err
+	}
+
+	return models.Message{
+		Message:     findedMsg.Message,
+		Time:        findedMsg.Time,
+		Id:          findedMsg.ID.Hex(),
+		ChatId:      findedMsg.ChatId.Hex(),
+		CreatorId:   findedMsg.CreatorId.Hex(),
+		IsProcessed: findedMsg.IsProcessed,
+		IsSended:    findedMsg.IsSended,
+		Error:       findedMsg.Error,
+	}, nil
+
+}

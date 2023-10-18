@@ -45,6 +45,7 @@ type ChatService interface {
 }
 type MessageService interface {
 	GetListOfAllMessages(creatorId string, offset int, limit int) ([]models.Message, error)
+	CreateNewMessage(creatorId string, msg models.Message) (models.Message, error)
 }
 type PoolService interface {
 	GetMsgList(period time.Duration) []models.Message
